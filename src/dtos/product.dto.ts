@@ -37,5 +37,5 @@ export class ProductDto {
    * @type {number}
    */
   @IsNumber()
-  category_id: number;
+  categoryId: number;
 }

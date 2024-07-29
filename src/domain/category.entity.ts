@@ -22,7 +22,7 @@ export class Category {
   /**
    * A collection of products that belong to this category.
    */
-  @OneToMany(() => Product, (product) => product.category)
+  @OneToMany(() => Product, (product) => product.categoryId)
   products: Product[];
 
   /**

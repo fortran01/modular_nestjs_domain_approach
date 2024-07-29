@@ -27,7 +27,7 @@ export class ProductController {
         name: product.name,
         price: product.price,
         image_url: product.image_url,
-        category_id: product.category.id,
+        categoryId: product.categoryId,
       }),
     );
   }

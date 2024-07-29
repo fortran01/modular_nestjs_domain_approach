@@ -56,7 +56,7 @@ export class LoyaltyService implements ILoyaltyService {
         continue;
       }
 
-      if (!product.category) {
+      if (!product.categoryId) {
         result.products_missing_category.push(productId);
         continue;
       }
@@ -92,9 +92,7 @@ export class LoyaltyService implements ILoyaltyService {
    * @returns A promise that resolves to the number of points earned.
    */
   async calculatePoints(product: Product, date: Date): Promise<number> {
-    const category = await this.categoryRepository.findById(
-      product.category.id,
-    );
+    const category = await this.categoryRepository.findById(product.categoryId);
     if (!category) {
       return 0;
     }

@@ -42,7 +42,7 @@ export class TypeOrmProductRepository implements IProductRepository {
    */
   async findByCategory(categoryId: number): Promise<Product[]> {
     return this.productRepository.find({
-      where: { category: { id: categoryId } },
+      where: { categoryId: categoryId },
     });
   }
 

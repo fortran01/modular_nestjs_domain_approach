@@ -38,10 +38,10 @@ export class Product {
   image_url: string;
 
   /**
-   * The category to which the product belongs.
+   * The category ID to which the product belongs.
    */
-  @ManyToOne(() => Category, (category) => category.products)
-  category: Category;
+  @Column()
+  categoryId: number;
 
   /**
    * The collection of point transactions associated with this product.
