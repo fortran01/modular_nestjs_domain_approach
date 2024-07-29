@@ -33,11 +33,11 @@ export interface ILoyaltyService {
  */
 export interface CheckoutResult {
   /** The total number of points earned during the checkout. */
-  totalPointsEarned: number;
+  total_points_earned: number;
   /** Array of product IDs that were invalid during checkout. */
-  invalidProducts: number[];
+  invalid_products: number[];
   /** Array of product IDs missing a category during checkout. */
-  productsMissingCategory: number[];
+  products_missing_category: number[];
   /** Array of product IDs for which point earning rules were missing. */
-  pointEarningRulesMissing: number[];
+  point_earning_rules_missing: number[];
 }

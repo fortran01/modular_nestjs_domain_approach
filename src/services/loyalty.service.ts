@@ -43,31 +43,31 @@ export class LoyaltyService implements ILoyaltyService {
     }
 
     const result: CheckoutResult = {
-      totalPointsEarned: 0,
-      invalidProducts: [],
-      productsMissingCategory: [],
-      pointEarningRulesMissing: [],
+      total_points_earned: 0,
+      invalid_products: [],
+      products_missing_category: [],
+      point_earning_rules_missing: [],
     };
 
     for (const productId of productIds) {
       const product = await this.productRepository.findById(productId);
       if (!product) {
-        result.invalidProducts.push(productId);
+        result.invalid_products.push(productId);
         continue;
       }
 
       if (!product.category) {
-        result.productsMissingCategory.push(productId);
+        result.products_missing_category.push(productId);
         continue;
       }
 
       const pointsEarned = await this.calculatePoints(product, new Date());
       if (pointsEarned === 0) {
-        result.pointEarningRulesMissing.push(productId);
+        result.point_earning_rules_missing.push(productId);
         continue;
       }
 
-      result.totalPointsEarned += pointsEarned;
+      result.total_points_earned += pointsEarned;
 
       const transaction = new PointTransaction();
       transaction.loyaltyAccount = loyaltyAccount;
@@ -79,7 +79,7 @@ export class LoyaltyService implements ILoyaltyService {
 
     await this.loyaltyAccountRepository.addPoints(
       loyaltyAccount.id,
-      result.totalPointsEarned,
+      result.total_points_earned,
     );
 
     return result;

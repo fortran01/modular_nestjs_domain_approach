@@ -8,26 +8,26 @@ export class CheckoutResultDto {
    * The total number of points earned in the checkout process.
    */
   @IsNumber()
-  totalPointsEarned: number;
+  total_points_earned: number;
 
   /**
    * Array of product IDs that were identified as invalid during the checkout.
    */
   @IsArray()
   @IsNumber({}, { each: true })
-  invalidProducts: number[];
+  invalid_products: number[];
 
   /**
    * Array of product IDs that are missing a category association.
    */
   @IsArray()
   @IsNumber({}, { each: true })
-  productsMissingCategory: number[];
+  products_missing_category: number[];
 
   /**
    * Array of product IDs for which point earning rules are missing.
    */
   @IsArray()
   @IsNumber({}, { each: true })
-  pointEarningRulesMissing: number[];
+  point_earning_rules_missing: number[];
 }
