@@ -1,10 +1,6 @@
 # modular_nestjs_domain_approach
 
-<!-- TODO: Add a description of the project -->
-
-## Features
-
-<!-- TODO: Add a list of features -->
+This project demonstrates a domain-driven design (DDD) approach using NestJS, a progressive Node.js framework for building efficient and scalable server-side applications. The project is structured around a loyalty program domain, showcasing how to organize and manage entities, services, and repositories in a modular fashion.
 
 ## Prerequisites
 
