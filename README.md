@@ -6,14 +6,6 @@ This project demonstrates a domain-driven design (DDD) approach using NestJS, a 
 
 - Node.js
 - npm or yarn
-- @nestjs/cli
-- hbs
-- @types/hbs
-- sqlite3
-- @nestjs/typeorm
-- typeorm
-- cookie-parser
-- @types/cookie-parser
 
 ## Installation
 
