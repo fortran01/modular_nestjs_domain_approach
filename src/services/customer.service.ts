@@ -2,8 +2,10 @@ import { Injectable, Inject } from '@nestjs/common';
 import { ICustomerService } from './customer.service.interface';
 import { ICustomerRepository } from '../repositories/customer.repository.interface';
 import { ILoyaltyAccountRepository } from '../repositories/loyalty-account.repository.interface';
-import { Customer } from '../domain/customer.entity';
-import { LoyaltyAccount } from '../domain/loyalty-account.entity';
+import { Customer } from '../models/domain/customer.entity';
+import { LoyaltyAccount } from '../models/domain/loyalty-account.entity';
+import { CustomerDto } from '../models/messages/customer.dto';
+import { CustomerMapper } from '../mappers/customer.mapper';
 
 /**
  * Service class for handling customer-related operations.
@@ -25,43 +27,47 @@ export class CustomerService implements ICustomerService {
   /**
    * Finds a customer by their unique identifier.
    * @param id The unique identifier of the customer.
-   * @returns A promise that resolves to the Customer or undefined if not found.
+   * @returns A promise that resolves to the CustomerDto or undefined if not found.
    */
-  async findById(id: number): Promise<Customer | undefined> {
-    return this.customerRepository.findById(id);
+  async findById(id: number): Promise<CustomerDto | undefined> {
+    const customer = await this.customerRepository.findById(id);
+    return customer ? CustomerMapper.toDto(customer) : undefined;
   }
 
   /**
    * Creates a new customer and initializes a loyalty account for them.
-   * @param customerData The data for creating a new customer.
-   * @returns A promise that resolves to the newly created Customer.
+   * @param customerDto The DTO for creating a new customer.
+   * @returns A promise that resolves to the newly created CustomerDto.
    */
-  async create(customerData: Partial<Customer>): Promise<Customer> {
+  async create(customerDto: CustomerDto): Promise<CustomerDto> {
     const customer = new Customer();
-    Object.assign(customer, customerData);
+    customer.name = customerDto.name;
+    customer.email = customerDto.email;
+
     const createdCustomer = await this.customerRepository.create(customer);
 
     const loyaltyAccount = new LoyaltyAccount();
     loyaltyAccount.customer = createdCustomer;
     await this.loyaltyAccountRepository.create(loyaltyAccount);
 
-    return createdCustomer;
+    return CustomerMapper.toDto(createdCustomer);
   }
 
   /**
    * Updates an existing customer with new data.
    * @param id The unique identifier of the customer to update.
-   * @param customerData The new data for the customer.
-   * @returns A promise that resolves to the updated Customer.
+   * @param customerDto The DTO with new data for the customer.
+   * @returns A promise that resolves to the updated CustomerDto.
    * @throws Error if the customer is not found.
    */
-  async update(id: number, customerData: Partial<Customer>): Promise<Customer> {
+  async update(id: number, customerDto: CustomerDto): Promise<CustomerDto> {
     const customer = await this.customerRepository.findById(id);
     if (!customer) {
       throw new Error('Customer not found');
     }
-    Object.assign(customer, customerData);
-    return this.customerRepository.update(customer);
+    Object.assign(customer, customerDto);
+    const updatedCustomer = await this.customerRepository.update(customer);
+    return CustomerMapper.toDto(updatedCustomer);
   }
 
   /**

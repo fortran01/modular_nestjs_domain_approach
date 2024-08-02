@@ -1,7 +1,9 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { IProductService } from './product.service.interface';
 import { IProductRepository } from '../repositories/product.repository.interface';
-import { Product } from '../domain/product.entity';
+import { ICategoryRepository } from '../repositories/category.repository.interface';
+import { ProductDto } from '../models/messages/product.dto';
+import { ProductMapper } from '../mappers/product.mapper';
 
 /**
  * Service class for handling product-related operations.
@@ -11,54 +13,67 @@ export class ProductService implements IProductService {
   /**
    * Constructs a new instance of ProductService.
    * @param productRepository The repository handling product data.
+   * @param categoryRepository The repository handling category data.
    */
   constructor(
     @Inject('IProductRepository')
     private productRepository: IProductRepository,
+    @Inject('ICategoryRepository')
+    private categoryRepository: ICategoryRepository,
   ) {}
 
   /**
    * Finds a product by its unique identifier.
    * @param id The unique identifier of the product.
-   * @returns A promise that resolves to the Product or undefined if not found.
+   * @returns A promise that resolves to the ProductDto or undefined if not found.
    */
-  async findById(id: number): Promise<Product | undefined> {
-    return this.productRepository.findById(id);
+  async findById(id: number): Promise<ProductDto | undefined> {
+    const product = await this.productRepository.findById(id);
+    return product ? ProductMapper.toDto(product) : undefined;
   }
 
   /**
    * Retrieves all products.
-   * @returns A promise that resolves to an array of Product entities.
+   * @returns A promise that resolves to an array of ProductDto.
    */
-  async findAll(): Promise<Product[]> {
-    return this.productRepository.findAll();
+  async findAll(): Promise<ProductDto[]> {
+    const products = await this.productRepository.findAll();
+    return products.map((product) => ProductMapper.toDto(product));
   }
 
   /**
    * Creates a new product with the given data.
-   * @param productData A partial product object containing data for the new product.
-   * @returns A promise that resolves to the newly created Product.
+   * @param productDto The DTO for creating a new product.
+   * @returns A promise that resolves to the newly created ProductDto.
    */
-  async create(productData: Partial<Product>): Promise<Product> {
-    const product = new Product();
-    Object.assign(product, productData);
-    return this.productRepository.create(product);
+  async create(productDto: ProductDto): Promise<ProductDto> {
+    const product = await ProductMapper.fromDto(
+      productDto,
+      this.categoryRepository,
+    );
+    const createdProduct = await this.productRepository.create(product);
+    return ProductMapper.toDto(createdProduct);
   }
 
   /**
    * Updates an existing product with the given data.
    * @param id The unique identifier of the product to update.
-   * @param productData A partial product object containing data to update.
-   * @returns A promise that resolves to the updated Product.
+   * @param productDto The DTO with new data for the product.
+   * @returns A promise that resolves to the updated ProductDto.
    * @throws Error if the product is not found.
    */
-  async update(id: number, productData: Partial<Product>): Promise<Product> {
-    const product = await this.productRepository.findById(id);
-    if (!product) {
+  async update(id: number, productDto: ProductDto): Promise<ProductDto> {
+    const existingProduct = await this.productRepository.findById(id);
+    if (!existingProduct) {
       throw new Error('Product not found');
     }
-    Object.assign(product, productData);
-    return this.productRepository.update(product);
+    const updatedProduct = await ProductMapper.fromDto(
+      productDto,
+      this.categoryRepository,
+      existingProduct,
+    );
+    const savedProduct = await this.productRepository.update(updatedProduct);
+    return ProductMapper.toDto(savedProduct);
   }
 
   /**

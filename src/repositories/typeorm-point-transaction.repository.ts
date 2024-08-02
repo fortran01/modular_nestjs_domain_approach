@@ -1,8 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Between, Repository } from 'typeorm';
-import { PointTransaction } from '../domain/point-transaction.entity';
+import { PointTransaction } from '../models/domain/point-transaction.entity';
+import { PointTransactionTable } from '../models/database/point-transaction.table';
 import { IPointTransactionRepository } from './point-transaction.repository.interface';
+import { PointTransactionMapper } from '../mappers/point-transaction.mapper';
 
 /**
  * Injectable class to handle operations for PointTransaction entities using TypeORM.
@@ -12,12 +14,12 @@ export class TypeOrmPointTransactionRepository
   implements IPointTransactionRepository
 {
   /**
-   * Repository for handling PointTransaction entities.
-   * @param pointTransactionRepository Injected repository for PointTransaction.
+   * Repository for handling PointTransactionTable entities.
+   * @param pointTransactionRepository Injected repository for PointTransactionTable.
    */
   constructor(
-    @InjectRepository(PointTransaction)
-    private pointTransactionRepository: Repository<PointTransaction>,
+    @InjectRepository(PointTransactionTable)
+    private pointTransactionRepository: Repository<PointTransactionTable>,
   ) {}
 
   /**
@@ -26,7 +28,10 @@ export class TypeOrmPointTransactionRepository
    * @returns A promise that resolves to the newly created PointTransaction.
    */
   async create(transaction: PointTransaction): Promise<PointTransaction> {
-    return this.pointTransactionRepository.save(transaction);
+    const transactionTable = PointTransactionMapper.toPersistence(transaction);
+    const savedTransactionTable =
+      await this.pointTransactionRepository.save(transactionTable);
+    return PointTransactionMapper.toDomain(savedTransactionTable);
   }
 
   /**
@@ -37,9 +42,10 @@ export class TypeOrmPointTransactionRepository
   async findByLoyaltyAccountId(
     loyaltyAccountId: number,
   ): Promise<PointTransaction[]> {
-    return this.pointTransactionRepository.find({
+    const transactionTables = await this.pointTransactionRepository.find({
       where: { loyaltyAccount: { id: loyaltyAccountId } },
     });
+    return transactionTables.map(PointTransactionMapper.toDomain);
   }
 
   /**
@@ -52,10 +58,11 @@ export class TypeOrmPointTransactionRepository
     startDate: Date,
     endDate: Date,
   ): Promise<PointTransaction[]> {
-    return this.pointTransactionRepository.find({
+    const transactionTables = await this.pointTransactionRepository.find({
       where: {
         transactionDate: Between(startDate, endDate),
       },
     });
+    return transactionTables.map(PointTransactionMapper.toDomain);
   }
 }

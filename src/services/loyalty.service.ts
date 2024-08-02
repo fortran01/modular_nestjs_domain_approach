@@ -1,18 +1,18 @@
 import { Injectable, Inject } from '@nestjs/common';
-import { ILoyaltyService, CheckoutResult } from './loyalty.service.interface';
 import { ILoyaltyAccountRepository } from '../repositories/loyalty-account.repository.interface';
 import { IProductRepository } from '../repositories/product.repository.interface';
 import { ICategoryRepository } from '../repositories/category.repository.interface';
 import { IPointEarningRuleRepository } from '../repositories/point-earning-rule.repository.interface';
 import { IPointTransactionRepository } from '../repositories/point-transaction.repository.interface';
-import { Product } from '../domain/product.entity';
-import { PointTransaction } from '../domain/point-transaction.entity';
+import { PointCalculationService } from '../models/domain/point-calculation.service';
+import { CheckoutResponseDto } from '../models/messages/checkout-response.dto';
+import { PointTransaction } from '../models/domain/point-transaction.entity';
 
 /**
- * Service class for handling loyalty related operations.
+ * Service to handle loyalty related operations.
  */
 @Injectable()
-export class LoyaltyService implements ILoyaltyService {
+export class LoyaltyService {
   constructor(
     @Inject('ILoyaltyAccountRepository')
     private loyaltyAccountRepository: ILoyaltyAccountRepository,
@@ -24,102 +24,94 @@ export class LoyaltyService implements ILoyaltyService {
     private pointEarningRuleRepository: IPointEarningRuleRepository,
     @Inject('IPointTransactionRepository')
     private pointTransactionRepository: IPointTransactionRepository,
+    private pointCalculationService: PointCalculationService,
   ) {}
 
   /**
-   * Processes a checkout operation for a customer with specified product IDs.
-   * @param customerId The unique identifier of the customer.
-   * @param productIds An array of product IDs for checkout.
-   * @returns A promise that resolves to a CheckoutResult object.
+   * Processes a checkout operation, calculating and recording points earned.
+   * @param customerId The ID of the customer checking out.
+   * @param productIds An array of product IDs being purchased.
+   * @returns A CheckoutResponseDto containing the results of the checkout process.
    */
   async checkout(
     customerId: number,
     productIds: number[],
-  ): Promise<CheckoutResult> {
-    const loyaltyAccount =
+  ): Promise<CheckoutResponseDto> {
+    const loyaltyAccountDomain =
       await this.loyaltyAccountRepository.findByCustomerId(customerId);
-    if (!loyaltyAccount) {
+    if (!loyaltyAccountDomain) {
       throw new Error('Loyalty account not found');
     }
 
-    const result: CheckoutResult = {
+    const result: {
+      total_points_earned: number;
+      invalid_products: number[];
+      products_missing_category: number[];
+      point_earning_rules_missing: number[];
+    } = {
       total_points_earned: 0,
       invalid_products: [],
       products_missing_category: [],
       point_earning_rules_missing: [],
     };
 
+    const date: Date = new Date();
+
     for (const productId of productIds) {
-      const product = await this.productRepository.findById(productId);
-      if (!product) {
+      const productDomain = await this.productRepository.findById(productId);
+      if (!productDomain) {
         result.invalid_products.push(productId);
         continue;
       }
 
-      if (!product.categoryId) {
+      if (!productDomain.isEligibleForPoints()) {
         result.products_missing_category.push(productId);
         continue;
       }
 
-      const pointsEarned = await this.calculatePoints(product, new Date());
-      if (pointsEarned === 0) {
+      const categoryDomain = await this.categoryRepository.findById(
+        productDomain.category.id,
+      );
+      const rulesDomain = await this.pointEarningRuleRepository.findByCategory(
+        categoryDomain.id,
+      );
+      const activeRuleDomain = this.pointCalculationService.findActiveRule(
+        rulesDomain,
+        date,
+      );
+
+      if (!activeRuleDomain) {
         result.point_earning_rules_missing.push(productId);
         continue;
       }
 
-      result.total_points_earned += pointsEarned;
-
-      const transaction = new PointTransaction();
-      transaction.loyaltyAccount = loyaltyAccount;
-      transaction.product = product;
-      transaction.pointsEarned = pointsEarned;
-      transaction.transactionDate = new Date();
-      await this.pointTransactionRepository.create(transaction);
-    }
-
-    await this.loyaltyAccountRepository.addPoints(
-      loyaltyAccount.id,
-      result.total_points_earned,
-    );
-
-    return result;
-  }
-
-  /**
-   * Calculates the loyalty points for a given product on a specific date.
-   * @param product The product for which points are to be calculated.
-   * @param date The date on which the calculation is performed.
-   * @returns A promise that resolves to the number of points earned.
-   */
-  async calculatePoints(product: Product, date: Date): Promise<number> {
-    const category = await this.categoryRepository.findById(product.categoryId);
-    if (!category) {
-      return 0;
-    }
-
-    const rule =
-      await this.pointEarningRuleRepository.findActiveRuleForCategory(
-        category.id,
+      const pointsEarned = this.pointCalculationService.calculatePoints(
+        productDomain,
+        activeRuleDomain,
         date,
       );
-    if (!rule) {
-      return 0;
+      result.total_points_earned += pointsEarned;
+
+      const transactionDomain: PointTransaction = new PointTransaction();
+      transactionDomain.loyaltyAccount = loyaltyAccountDomain;
+      transactionDomain.product = productDomain;
+      transactionDomain.pointsEarned = pointsEarned;
+      transactionDomain.transactionDate = date;
+      await this.pointTransactionRepository.create(transactionDomain);
     }
 
-    return product.calculatePoints(rule.pointsPerDollar);
+    loyaltyAccountDomain.addPoints(result.total_points_earned);
+    await this.loyaltyAccountRepository.update(loyaltyAccountDomain);
+
+    return new CheckoutResponseDto(result);
   }
 
-  /**
-   * Retrieves the total loyalty points accumulated by a customer.
-   * @param customerId The unique identifier of the customer.
-   * @returns A promise that resolves to the number of points.
-   */
   async getCustomerPoints(customerId: number): Promise<number> {
-    const loyaltyAccount =
+    const loyaltyAccountDomain =
       await this.loyaltyAccountRepository.findByCustomerId(customerId);
-    if (!loyaltyAccount) {
+    if (!loyaltyAccountDomain) {
       throw new Error('Loyalty account not found');
     }
-    return loyaltyAccount.points;
+    return loyaltyAccountDomain.getPoints();
   }
 }

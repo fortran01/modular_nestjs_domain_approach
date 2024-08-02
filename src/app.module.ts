@@ -1,18 +1,20 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { LoyaltyController } from './controllers/loyalty.controller';
 import { ProductController } from './controllers/product.controller';
 import { CustomerController } from './controllers/customer.controller';
-import { Customer } from './domain/customer.entity';
-import { LoyaltyAccount } from './domain/loyalty-account.entity';
-import { Product } from './domain/product.entity';
-import { Category } from './domain/category.entity';
-import { PointEarningRule } from './domain/point-earning-rule.entity';
-import { PointTransaction } from './domain/point-transaction.entity';
+import { CustomerTable } from './models/database/customer.table';
+import { LoyaltyAccountTable } from './models/database/loyalty-account.table';
+import { ProductTable } from './models/database/product.table';
+import { CategoryTable } from './models/database/category.table';
+import { PointEarningRuleTable } from './models/database/point-earning-rule.table';
+import { PointTransactionTable } from './models/database/point-transaction.table';
 import { DatabaseSeeder } from './database/seeder';
 import { SeedCommand } from './commands/seed.command';
 import { repositoryProviders } from './providers/repositories.providers';
 import { serviceProviders } from './providers/services.providers';
+import { PointCalculationService } from './models/domain/point-calculation.service';
+import { mapperProviders } from './providers/mappers.providers';
 
 /**
  * Main application module, configuring imports, controllers, providers, and seeding capabilities.
@@ -23,22 +25,25 @@ import { serviceProviders } from './providers/services.providers';
       type: 'sqlite',
       database: 'loyalty_program.db',
       entities: [
-        Customer,
-        LoyaltyAccount,
-        Product,
-        Category,
-        PointEarningRule,
-        PointTransaction,
-      ] as const,
+        CustomerTable,
+        LoyaltyAccountTable,
+        ProductTable,
+        CategoryTable,
+        PointEarningRuleTable,
+        PointTransactionTable,
+      ],
       synchronize: true,
-    } as TypeOrmModuleOptions),
+    }),
   ],
   controllers: [LoyaltyController, ProductController, CustomerController],
   providers: [
     ...repositoryProviders,
     ...serviceProviders,
+    ...mapperProviders,
     DatabaseSeeder,
     SeedCommand,
+    // Domain Services
+    PointCalculationService,
   ],
 })
 export class AppModule {}

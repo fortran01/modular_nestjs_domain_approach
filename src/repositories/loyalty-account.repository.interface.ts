@@ -1,4 +1,4 @@
-import { LoyaltyAccount } from '../domain/loyalty-account.entity';
+import { LoyaltyAccount } from '../models/domain/loyalty-account.entity';
 
 /**
  * Interface for operations on the LoyaltyAccount repository.

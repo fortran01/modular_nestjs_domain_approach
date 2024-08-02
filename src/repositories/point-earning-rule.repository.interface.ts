@@ -1,4 +1,4 @@
-import { PointEarningRule } from '../domain/point-earning-rule.entity';
+import { PointEarningRule } from '../models/domain/point-earning-rule.entity';
 
 /**
  * Interface for point earning rule repository operations.
@@ -42,4 +42,11 @@ export interface IPointEarningRuleRepository {
    * @returns A promise that resolves to void.
    */
   delete(id: number): Promise<void>;
+
+  /**
+   * Finds point earning rules by category ID.
+   * @param categoryId The unique identifier of the category.
+   * @returns A promise that resolves to an array of PointEarningRule objects.
+   */
+  findByCategory(categoryId: number): Promise<PointEarningRule[]>;
 }

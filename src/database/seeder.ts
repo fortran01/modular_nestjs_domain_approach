@@ -4,11 +4,11 @@ import { ILoyaltyAccountRepository } from '../repositories/loyalty-account.repos
 import { IProductRepository } from '../repositories/product.repository.interface';
 import { ICategoryRepository } from '../repositories/category.repository.interface';
 import { IPointEarningRuleRepository } from '../repositories/point-earning-rule.repository.interface';
-import { Customer } from '../domain/customer.entity';
-import { LoyaltyAccount } from '../domain/loyalty-account.entity';
-import { Product } from '../domain/product.entity';
-import { Category } from '../domain/category.entity';
-import { PointEarningRule } from '../domain/point-earning-rule.entity';
+import { Customer } from '../models/domain/customer.entity';
+import { LoyaltyAccount } from '../models/domain/loyalty-account.entity';
+import { Product } from '../models/domain/product.entity';
+import { Category } from '../models/domain/category.entity';
+import { PointEarningRule } from '../models/domain/point-earning-rule.entity';
 
 /**
  * Injectable service for seeding the database with initial data.

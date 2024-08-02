@@ -1,7 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Product } from '../domain/product.entity';
+import { Product } from '../models/domain/product.entity';
+import { ProductTable } from '../models/database/product.table';
+import { ProductMapper } from '../mappers/product.mapper';
 import { IProductRepository } from './product.repository.interface';
 
 /**
@@ -10,12 +12,12 @@ import { IProductRepository } from './product.repository.interface';
 @Injectable()
 export class TypeOrmProductRepository implements IProductRepository {
   /**
-   * Repository for handling Product entities.
-   * @param productRepository Injected repository for Product.
+   * Repository for handling ProductTable entities.
+   * @param productRepository Injected repository for ProductTable.
    */
   constructor(
-    @InjectRepository(Product)
-    private productRepository: Repository<Product>,
+    @InjectRepository(ProductTable)
+    private productRepository: Repository<ProductTable>,
   ) {}
 
   /**
@@ -24,7 +26,10 @@ export class TypeOrmProductRepository implements IProductRepository {
    * @returns A promise that resolves to the Product or undefined if not found.
    */
   async findById(id: number): Promise<Product | undefined> {
-    return this.productRepository.findOne({ where: { id } });
+    const productTable = await this.productRepository.findOne({
+      where: { id },
+    });
+    return productTable ? ProductMapper.toDomain(productTable) : undefined;
   }
 
   /**
@@ -32,7 +37,8 @@ export class TypeOrmProductRepository implements IProductRepository {
    * @returns A promise that resolves to an array of Product entities.
    */
   async findAll(): Promise<Product[]> {
-    return this.productRepository.find();
+    const productTables = await this.productRepository.find();
+    return productTables.map(ProductMapper.toDomain);
   }
 
   /**
@@ -41,9 +47,10 @@ export class TypeOrmProductRepository implements IProductRepository {
    * @returns A promise that resolves to an array of Product entities.
    */
   async findByCategory(categoryId: number): Promise<Product[]> {
-    return this.productRepository.find({
-      where: { categoryId: categoryId },
+    const productTables = await this.productRepository.find({
+      where: { category: { id: categoryId } },
     });
+    return productTables.map(ProductMapper.toDomain);
   }
 
   /**
@@ -52,7 +59,9 @@ export class TypeOrmProductRepository implements IProductRepository {
    * @returns A promise that resolves to the newly created Product.
    */
   async create(product: Product): Promise<Product> {
-    return this.productRepository.save(product);
+    const productTable = ProductMapper.toPersistence(product);
+    const savedProductTable = await this.productRepository.save(productTable);
+    return ProductMapper.toDomain(savedProductTable);
   }
 
   /**
@@ -61,8 +70,9 @@ export class TypeOrmProductRepository implements IProductRepository {
    * @returns A promise that resolves to the updated Product.
    */
   async update(product: Product): Promise<Product> {
-    await this.productRepository.update(product.id, product);
-    return product;
+    const productTable = ProductMapper.toPersistence(product);
+    await this.productRepository.update(productTable.id, productTable);
+    return ProductMapper.toDomain(productTable);
   }
 
   /**

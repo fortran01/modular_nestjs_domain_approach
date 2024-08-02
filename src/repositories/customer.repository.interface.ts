@@ -1,4 +1,4 @@
-import { Customer } from '../domain/customer.entity';
+import { Customer } from '../models/domain/customer.entity';
 
 /**
  * Interface for customer repository operations.

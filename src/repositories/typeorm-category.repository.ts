@@ -1,8 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Category } from '../domain/category.entity';
+import { Category } from '../models/domain/category.entity';
+import { CategoryTable } from '../models/database/category.table';
 import { ICategoryRepository } from './category.repository.interface';
+import { CategoryMapper } from '../mappers/category.mapper';
 
 /**
  * TypeOrm implementation of the ICategoryRepository interface.
@@ -10,11 +12,11 @@ import { ICategoryRepository } from './category.repository.interface';
 @Injectable()
 export class TypeOrmCategoryRepository implements ICategoryRepository {
   /**
-   * Repository for handling Category entities.
+   * Repository for handling CategoryTable entities.
    */
   constructor(
-    @InjectRepository(Category)
-    private categoryRepository: Repository<Category>,
+    @InjectRepository(CategoryTable)
+    private categoryRepository: Repository<CategoryTable>,
   ) {}
 
   /**
@@ -23,7 +25,10 @@ export class TypeOrmCategoryRepository implements ICategoryRepository {
    * @returns A promise that resolves to the Category or undefined if not found.
    */
   async findById(id: number): Promise<Category | undefined> {
-    return this.categoryRepository.findOne({ where: { id } });
+    const categoryTable = await this.categoryRepository.findOne({
+      where: { id },
+    });
+    return categoryTable ? CategoryMapper.toDomain(categoryTable) : undefined;
   }
 
   /**
@@ -31,7 +36,8 @@ export class TypeOrmCategoryRepository implements ICategoryRepository {
    * @returns A promise that resolves to an array of Category entities.
    */
   async findAll(): Promise<Category[]> {
-    return this.categoryRepository.find();
+    const categoryTables = await this.categoryRepository.find();
+    return categoryTables.map(CategoryMapper.toDomain);
   }
 
   /**
@@ -40,7 +46,7 @@ export class TypeOrmCategoryRepository implements ICategoryRepository {
    * @returns A promise that resolves to an array of Category entities.
    */
   async findWithActiveRule(date: Date): Promise<Category[]> {
-    return this.categoryRepository
+    const categoryTables = await this.categoryRepository
       .createQueryBuilder('category')
       .leftJoinAndSelect(
         'category.pointEarningRules',
@@ -49,6 +55,7 @@ export class TypeOrmCategoryRepository implements ICategoryRepository {
         { date },
       )
       .getMany();
+    return categoryTables.map(CategoryMapper.toDomain);
   }
 
   /**
@@ -57,7 +64,10 @@ export class TypeOrmCategoryRepository implements ICategoryRepository {
    * @returns A promise that resolves to the newly created Category.
    */
   async create(category: Category): Promise<Category> {
-    return this.categoryRepository.save(category);
+    const categoryTable = CategoryMapper.toPersistence(category);
+    const savedCategoryTable =
+      await this.categoryRepository.save(categoryTable);
+    return CategoryMapper.toDomain(savedCategoryTable);
   }
 
   /**
@@ -66,8 +76,9 @@ export class TypeOrmCategoryRepository implements ICategoryRepository {
    * @returns A promise that resolves to the updated Category.
    */
   async update(category: Category): Promise<Category> {
-    await this.categoryRepository.update(category.id, category);
-    return category;
+    const categoryTable = CategoryMapper.toPersistence(category);
+    await this.categoryRepository.update(categoryTable.id, categoryTable);
+    return CategoryMapper.toDomain(categoryTable);
   }
 
   /**

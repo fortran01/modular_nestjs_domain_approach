@@ -6,7 +6,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { CustomerService } from '../services/customer.service';
-import { CustomerDto } from '../dtos/customer.dto';
+import { CustomerDto } from '../models/messages/customer.dto';
 import { AuthGuard } from '../guards/auth.guard';
 
 /**

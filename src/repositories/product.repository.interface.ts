@@ -1,4 +1,4 @@
-import { Product } from '../domain/product.entity';
+import { Product } from '../models/domain/product.entity';
 
 /**
  * Interface for product repository operations.

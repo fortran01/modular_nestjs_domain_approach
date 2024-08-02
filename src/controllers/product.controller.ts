@@ -1,7 +1,6 @@
 import { Controller, Get } from '@nestjs/common';
 import { ProductService } from '../services/product.service';
-import { ProductDto } from '../dtos/product.dto';
-import { Product } from '../domain/product.entity';
+import { ProductDto } from '../models/messages/product.dto';
 
 /**
  * Controller for managing product-related operations.
@@ -20,9 +19,9 @@ export class ProductController {
    */
   @Get()
   async getAllProducts(): Promise<ProductDto[]> {
-    const products: Product[] = await this.productService.findAll();
+    const products: ProductDto[] = await this.productService.findAll();
     return products.map(
-      (product: Product): ProductDto => ({
+      (product: ProductDto): ProductDto => ({
         id: product.id,
         name: product.name,
         price: product.price,

@@ -1,35 +1,34 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
 import { Product } from './product.entity';
 import { PointEarningRule } from './point-earning-rule.entity';
 
 /**
  * Represents a category of products within the system.
  */
-@Entity()
 export class Category {
   /**
    * The unique identifier for the category.
    */
-  @PrimaryGeneratedColumn()
   id: number;
 
   /**
    * The name of the category.
    */
-  @Column()
   name: string;
 
   /**
    * A collection of products that belong to this category.
    */
-  @OneToMany(() => Product, (product) => product.categoryId)
   products: Product[];
 
   /**
    * A collection of point earning rules associated with this category.
    */
-  @OneToMany(() => PointEarningRule, (rule) => rule.category)
   pointEarningRules: PointEarningRule[];
+
+  constructor() {
+    this.products = [];
+    this.pointEarningRules = [];
+  }
 
   /**
    * Retrieves the active point earning rule based on the provided date.

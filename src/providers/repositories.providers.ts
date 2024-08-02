@@ -6,12 +6,12 @@ import { TypeOrmProductRepository } from '../repositories/typeorm-product.reposi
 import { TypeOrmCategoryRepository } from '../repositories/typeorm-category.repository';
 import { TypeOrmPointEarningRuleRepository } from '../repositories/typeorm-point-earning-rule.repository';
 import { TypeOrmPointTransactionRepository } from '../repositories/typeorm-point-transaction.repository';
-import { Customer } from '../domain/customer.entity';
-import { LoyaltyAccount } from '../domain/loyalty-account.entity';
-import { Product } from '../domain/product.entity';
-import { Category } from '../domain/category.entity';
-import { PointEarningRule } from '../domain/point-earning-rule.entity';
-import { PointTransaction } from '../domain/point-transaction.entity';
+import { CustomerTable } from '../models/database/customer.table';
+import { LoyaltyAccountTable } from '../models/database/loyalty-account.table';
+import { ProductTable } from '../models/database/product.table';
+import { CategoryTable } from '../models/database/category.table';
+import { PointEarningRuleTable } from '../models/database/point-earning-rule.table';
+import { PointTransactionTable } from '../models/database/point-transaction.table';
 
 /**
  * Provides dependency injection configurations for repository providers.
@@ -21,7 +21,7 @@ export const repositoryProviders: Provider[] = [
     provide: 'ICustomerRepository',
     useFactory: (dataSource: DataSource): TypeOrmCustomerRepository =>
       new TypeOrmCustomerRepository(
-        dataSource.getRepository<Customer>(Customer),
+        dataSource.getRepository<CustomerTable>(CustomerTable),
       ),
     inject: [DataSource],
   },
@@ -29,21 +29,23 @@ export const repositoryProviders: Provider[] = [
     provide: 'ILoyaltyAccountRepository',
     useFactory: (dataSource: DataSource): TypeOrmLoyaltyAccountRepository =>
       new TypeOrmLoyaltyAccountRepository(
-        dataSource.getRepository<LoyaltyAccount>(LoyaltyAccount),
+        dataSource.getRepository<LoyaltyAccountTable>(LoyaltyAccountTable),
       ),
     inject: [DataSource],
   },
   {
     provide: 'IProductRepository',
     useFactory: (dataSource: DataSource): TypeOrmProductRepository =>
-      new TypeOrmProductRepository(dataSource.getRepository<Product>(Product)),
+      new TypeOrmProductRepository(
+        dataSource.getRepository<ProductTable>(ProductTable),
+      ),
     inject: [DataSource],
   },
   {
     provide: 'ICategoryRepository',
     useFactory: (dataSource: DataSource): TypeOrmCategoryRepository =>
       new TypeOrmCategoryRepository(
-        dataSource.getRepository<Category>(Category),
+        dataSource.getRepository<CategoryTable>(CategoryTable),
       ),
     inject: [DataSource],
   },
@@ -51,7 +53,7 @@ export const repositoryProviders: Provider[] = [
     provide: 'IPointEarningRuleRepository',
     useFactory: (dataSource: DataSource): TypeOrmPointEarningRuleRepository =>
       new TypeOrmPointEarningRuleRepository(
-        dataSource.getRepository<PointEarningRule>(PointEarningRule),
+        dataSource.getRepository<PointEarningRuleTable>(PointEarningRuleTable),
       ),
     inject: [DataSource],
   },
@@ -59,7 +61,7 @@ export const repositoryProviders: Provider[] = [
     provide: 'IPointTransactionRepository',
     useFactory: (dataSource: DataSource): TypeOrmPointTransactionRepository =>
       new TypeOrmPointTransactionRepository(
-        dataSource.getRepository<PointTransaction>(PointTransaction),
+        dataSource.getRepository<PointTransactionTable>(PointTransactionTable),
       ),
     inject: [DataSource],
   },

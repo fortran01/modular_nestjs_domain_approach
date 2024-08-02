@@ -1,8 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Customer } from '../domain/customer.entity';
+import { Customer } from '../models/domain/customer.entity';
+import { CustomerTable } from '../models/database/customer.table';
 import { ICustomerRepository } from './customer.repository.interface';
+import { CustomerMapper } from '../mappers/customer.mapper';
 
 /**
  * TypeORM specific implementation of the ICustomerRepository interface.
@@ -10,12 +12,12 @@ import { ICustomerRepository } from './customer.repository.interface';
 @Injectable()
 export class TypeOrmCustomerRepository implements ICustomerRepository {
   /**
-   * Repository for handling Customer entities.
-   * @param customerRepository Injected Customer repository.
+   * Repository for handling CustomerTable entities.
+   * @param customerRepository Injected CustomerTable repository.
    */
   constructor(
-    @InjectRepository(Customer)
-    private customerRepository: Repository<Customer>,
+    @InjectRepository(CustomerTable)
+    private customerRepository: Repository<CustomerTable>,
   ) {}
 
   /**
@@ -24,7 +26,10 @@ export class TypeOrmCustomerRepository implements ICustomerRepository {
    * @returns A promise that resolves to the Customer or undefined if not found.
    */
   async findById(id: number): Promise<Customer | undefined> {
-    return this.customerRepository.findOne({ where: { id } });
+    const customerTable = await this.customerRepository.findOne({
+      where: { id },
+    });
+    return customerTable ? CustomerMapper.toDomain(customerTable) : undefined;
   }
 
   /**
@@ -33,7 +38,10 @@ export class TypeOrmCustomerRepository implements ICustomerRepository {
    * @returns A promise that resolves to the Customer or undefined if not found.
    */
   async findByEmail(email: string): Promise<Customer | undefined> {
-    return this.customerRepository.findOne({ where: { email } });
+    const customerTable = await this.customerRepository.findOne({
+      where: { email },
+    });
+    return customerTable ? CustomerMapper.toDomain(customerTable) : undefined;
   }
 
   /**
@@ -42,7 +50,10 @@ export class TypeOrmCustomerRepository implements ICustomerRepository {
    * @returns A promise that resolves to the newly created Customer.
    */
   async create(customer: Customer): Promise<Customer> {
-    return this.customerRepository.save(customer);
+    const customerTable = CustomerMapper.toPersistence(customer);
+    const savedCustomerTable =
+      await this.customerRepository.save(customerTable);
+    return CustomerMapper.toDomain(savedCustomerTable);
   }
 
   /**
@@ -51,8 +62,9 @@ export class TypeOrmCustomerRepository implements ICustomerRepository {
    * @returns A promise that resolves to the updated Customer.
    */
   async update(customer: Customer): Promise<Customer> {
-    await this.customerRepository.update(customer.id, customer);
-    return customer;
+    const customerTable = CustomerMapper.toPersistence(customer);
+    await this.customerRepository.update(customerTable.id, customerTable);
+    return CustomerMapper.toDomain(customerTable);
   }
 
   /**

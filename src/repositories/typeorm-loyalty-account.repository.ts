@@ -1,7 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { LoyaltyAccount } from '../domain/loyalty-account.entity';
+import { LoyaltyAccount } from '../models/domain/loyalty-account.entity';
+import { LoyaltyAccountTable } from '../models/database/loyalty-account.table';
+import { LoyaltyAccountMapper } from '../mappers/loyalty-account.mapper';
 import { ILoyaltyAccountRepository } from './loyalty-account.repository.interface';
 
 /**
@@ -12,12 +14,12 @@ export class TypeOrmLoyaltyAccountRepository
   implements ILoyaltyAccountRepository
 {
   /**
-   * Repository for handling LoyaltyAccount entities.
-   * @param loyaltyAccountRepository Injected repository for LoyaltyAccount.
+   * Repository for handling LoyaltyAccountTable entities.
+   * @param loyaltyAccountRepository Injected repository for LoyaltyAccountTable.
    */
   constructor(
-    @InjectRepository(LoyaltyAccount)
-    private loyaltyAccountRepository: Repository<LoyaltyAccount>,
+    @InjectRepository(LoyaltyAccountTable)
+    private loyaltyAccountRepository: Repository<LoyaltyAccountTable>,
   ) {}
 
   /**
@@ -26,10 +28,13 @@ export class TypeOrmLoyaltyAccountRepository
    * @returns A promise that resolves to the LoyaltyAccount or undefined if not found.
    */
   async findById(id: number): Promise<LoyaltyAccount | undefined> {
-    return this.loyaltyAccountRepository.findOne({
+    const loyaltyAccountTable = await this.loyaltyAccountRepository.findOne({
       where: { id },
       relations: ['customer'],
     });
+    return loyaltyAccountTable
+      ? LoyaltyAccountMapper.toDomain(loyaltyAccountTable)
+      : undefined;
   }
 
   /**
@@ -40,10 +45,13 @@ export class TypeOrmLoyaltyAccountRepository
   async findByCustomerId(
     customerId: number,
   ): Promise<LoyaltyAccount | undefined> {
-    return this.loyaltyAccountRepository.findOne({
+    const loyaltyAccountTable = await this.loyaltyAccountRepository.findOne({
       where: { customer: { id: customerId } },
       relations: ['customer'],
     });
+    return loyaltyAccountTable
+      ? LoyaltyAccountMapper.toDomain(loyaltyAccountTable)
+      : undefined;
   }
 
   /**
@@ -52,7 +60,11 @@ export class TypeOrmLoyaltyAccountRepository
    * @returns A promise that resolves to the newly created LoyaltyAccount.
    */
   async create(loyaltyAccount: LoyaltyAccount): Promise<LoyaltyAccount> {
-    return this.loyaltyAccountRepository.save(loyaltyAccount);
+    const loyaltyAccountTable =
+      LoyaltyAccountMapper.toPersistence(loyaltyAccount);
+    const savedLoyaltyAccountTable =
+      await this.loyaltyAccountRepository.save(loyaltyAccountTable);
+    return LoyaltyAccountMapper.toDomain(savedLoyaltyAccountTable);
   }
 
   /**
@@ -61,11 +73,13 @@ export class TypeOrmLoyaltyAccountRepository
    * @returns A promise that resolves to the updated LoyaltyAccount.
    */
   async update(loyaltyAccount: LoyaltyAccount): Promise<LoyaltyAccount> {
+    const loyaltyAccountTable =
+      LoyaltyAccountMapper.toPersistence(loyaltyAccount);
     await this.loyaltyAccountRepository.update(
-      loyaltyAccount.id,
-      loyaltyAccount,
+      loyaltyAccountTable.id,
+      loyaltyAccountTable,
     );
-    return loyaltyAccount;
+    return LoyaltyAccountMapper.toDomain(loyaltyAccountTable);
   }
 
   /**
@@ -76,11 +90,15 @@ export class TypeOrmLoyaltyAccountRepository
    * @throws Error if the loyalty account is not found.
    */
   async addPoints(id: number, points: number): Promise<LoyaltyAccount> {
-    const account = await this.findById(id);
-    if (!account) {
+    const loyaltyAccountTable = await this.loyaltyAccountRepository.findOne({
+      where: { id },
+    });
+    if (!loyaltyAccountTable) {
       throw new Error('Loyalty account not found');
     }
-    account.addPoints(points);
-    return this.update(account);
+    loyaltyAccountTable.points += points;
+    const updatedLoyaltyAccountTable =
+      await this.loyaltyAccountRepository.save(loyaltyAccountTable);
+    return LoyaltyAccountMapper.toDomain(updatedLoyaltyAccountTable);
   }
 }

@@ -13,10 +13,10 @@ import { LoyaltyService } from '../services/loyalty.service';
 import { CustomerService } from '../services/customer.service';
 import { ProductService } from '../services/product.service';
 import { AuthGuard } from '../guards/auth.guard';
-import { LoginDto } from '../dtos/login.dto';
-import { CheckoutDto } from '../dtos/checkout.dto';
-import { CheckoutResultDto } from '../dtos/checkout-result.dto';
-import { PointsDto } from '../dtos/points.dto';
+import { LoginDto } from '../models/messages/login.dto';
+import { CheckoutRequestDto } from '../models/messages/checkout-request.dto';
+import { CheckoutResponseDto } from '../models/messages/checkout-response.dto';
+import { PointsDto } from '../models/messages/points.dto';
 
 /**
  * Controller for handling loyalty related operations.
@@ -86,9 +86,9 @@ export class LoyaltyController {
   @Post('checkout')
   @UseGuards(AuthGuard)
   async checkout(
-    @Body() checkoutDto: CheckoutDto,
+    @Body() checkoutDto: CheckoutRequestDto,
     @Req() req: Request,
-  ): Promise<CheckoutResultDto> {
+  ): Promise<CheckoutResponseDto> {
     const customerId = parseInt(req.cookies['customer_id']);
     return this.loyaltyService.checkout(customerId, checkoutDto.product_ids);
   }

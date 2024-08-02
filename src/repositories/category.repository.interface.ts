@@ -1,4 +1,4 @@
-import { Category } from '../domain/category.entity';
+import { Category } from '../models/domain/category.entity';
 
 /**
  * Interface for category repository operations.

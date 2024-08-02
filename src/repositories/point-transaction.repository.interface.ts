@@ -1,4 +1,4 @@
-import { PointTransaction } from '../domain/point-transaction.entity';
+import { PointTransaction } from '../models/domain/point-transaction.entity';
 
 /**
  * Interface for point transaction repository operations.
