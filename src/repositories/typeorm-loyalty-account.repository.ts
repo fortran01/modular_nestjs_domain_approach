@@ -75,10 +75,9 @@ export class TypeOrmLoyaltyAccountRepository
   async update(loyaltyAccount: LoyaltyAccount): Promise<LoyaltyAccount> {
     const loyaltyAccountTable =
       LoyaltyAccountMapper.toPersistence(loyaltyAccount);
-    await this.loyaltyAccountRepository.update(
-      loyaltyAccountTable.id,
-      loyaltyAccountTable,
-    );
+    await this.loyaltyAccountRepository.update(loyaltyAccountTable.id, {
+      points: loyaltyAccountTable.points,
+    });
     return LoyaltyAccountMapper.toDomain(loyaltyAccountTable);
   }
 
