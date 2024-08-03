@@ -5,9 +5,17 @@ import { CategoryMapper } from './category.mapper';
 import { PointTransactionMapper } from './point-transaction.mapper';
 import { ICategoryRepository } from '../repositories/category.repository.interface';
 
+/**
+ * Mapper class for converting Product data between various forms.
+ */
 export class ProductMapper {
+  /**
+   * Converts a ProductTable database object to a Product domain model.
+   * @param productTable - The ProductTable object from the database.
+   * @returns The Product domain model.
+   */
   static toDomain(productTable: ProductTable): Product {
-    const product = new Product();
+    const product: Product = new Product();
     product.id = productTable.id;
     product.name = productTable.name;
     product.price = productTable.price;
@@ -23,12 +31,19 @@ export class ProductMapper {
     return product;
   }
 
+  /**
+   * Creates or updates a Product domain model from a ProductDto.
+   * @param productDto - The DTO containing product data.
+   * @param categoryRepository - Repository to fetch category data.
+   * @param existingProduct - Optional existing product for updates.
+   * @returns A promise containing the Product domain model.
+   */
   static async fromDto(
     productDto: ProductDto,
     categoryRepository: ICategoryRepository,
-    existingProduct?: Product, // Optional existing product for updates
+    existingProduct?: Product,
   ): Promise<Product> {
-    const product = existingProduct || new Product();
+    const product: Product = existingProduct || new Product();
     product.id = productDto.id;
     product.name = productDto.name;
     product.price = productDto.price;
@@ -48,8 +63,13 @@ export class ProductMapper {
     return product;
   }
 
+  /**
+   * Converts a Product domain model to a ProductTable for persistence.
+   * @param product - The Product domain model.
+   * @returns The ProductTable database object.
+   */
   static toPersistence(product: Product): ProductTable {
-    const productTable = new ProductTable();
+    const productTable: ProductTable = new ProductTable();
     productTable.id = product.id;
     productTable.name = product.name;
     productTable.price = product.price;
@@ -65,6 +85,11 @@ export class ProductMapper {
     return productTable;
   }
 
+  /**
+   * Converts a Product domain model to a ProductDto.
+   * @param product - The Product domain model.
+   * @returns The ProductDto.
+   */
   static toDto(product: Product): ProductDto {
     return new ProductDto({
       id: product.id,

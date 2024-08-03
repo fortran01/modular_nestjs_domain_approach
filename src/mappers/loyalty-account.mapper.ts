@@ -3,7 +3,15 @@ import { LoyaltyAccountTable } from '../models/database/loyalty-account.table';
 import { PointTransactionMapper } from './point-transaction.mapper';
 import { CustomerMapper } from './customer.mapper';
 
+/**
+ * Mapper class for converting between LoyaltyAccount domain model and database table representations.
+ */
 export class LoyaltyAccountMapper {
+  /**
+   * Converts a LoyaltyAccountTable database object to a LoyaltyAccount domain model.
+   * @param loyaltyAccountTable - The database object to convert.
+   * @returns The converted LoyaltyAccount domain model.
+   */
   static toDomain(loyaltyAccountTable: LoyaltyAccountTable): LoyaltyAccount {
     const loyaltyAccount = new LoyaltyAccount();
     loyaltyAccount.id = loyaltyAccountTable.id;
@@ -20,6 +28,11 @@ export class LoyaltyAccountMapper {
     return loyaltyAccount;
   }
 
+  /**
+   * Converts a LoyaltyAccount domain model to a LoyaltyAccountTable for persistence.
+   * @param loyaltyAccount - The domain model to convert.
+   * @returns The LoyaltyAccountTable database object.
+   */
   static toPersistence(loyaltyAccount: LoyaltyAccount): LoyaltyAccountTable {
     const loyaltyAccountTable = new LoyaltyAccountTable();
     loyaltyAccountTable.id = loyaltyAccount.id;

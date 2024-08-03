@@ -15,54 +15,61 @@ import { PointTransactionTable } from '../models/database/point-transaction.tabl
 
 /**
  * Provides dependency injection configurations for repository providers.
+ * Each provider is configured with a factory function that initializes the repository with a TypeORM data source.
  */
 export const repositoryProviders: Provider[] = [
   {
     provide: 'ICustomerRepository',
-    useFactory: (dataSource: DataSource): TypeOrmCustomerRepository =>
-      new TypeOrmCustomerRepository(
+    useFactory: (dataSource: DataSource): TypeOrmCustomerRepository => {
+      return new TypeOrmCustomerRepository(
         dataSource.getRepository<CustomerTable>(CustomerTable),
-      ),
+      );
+    },
     inject: [DataSource],
   },
   {
     provide: 'ILoyaltyAccountRepository',
-    useFactory: (dataSource: DataSource): TypeOrmLoyaltyAccountRepository =>
-      new TypeOrmLoyaltyAccountRepository(
+    useFactory: (dataSource: DataSource): TypeOrmLoyaltyAccountRepository => {
+      return new TypeOrmLoyaltyAccountRepository(
         dataSource.getRepository<LoyaltyAccountTable>(LoyaltyAccountTable),
-      ),
+      );
+    },
     inject: [DataSource],
   },
   {
     provide: 'IProductRepository',
-    useFactory: (dataSource: DataSource): TypeOrmProductRepository =>
-      new TypeOrmProductRepository(
+    useFactory: (dataSource: DataSource): TypeOrmProductRepository => {
+      return new TypeOrmProductRepository(
         dataSource.getRepository<ProductTable>(ProductTable),
-      ),
+      );
+    },
     inject: [DataSource],
   },
   {
     provide: 'ICategoryRepository',
-    useFactory: (dataSource: DataSource): TypeOrmCategoryRepository =>
-      new TypeOrmCategoryRepository(
+    useFactory: (dataSource: DataSource): TypeOrmCategoryRepository => {
+      return new TypeOrmCategoryRepository(
         dataSource.getRepository<CategoryTable>(CategoryTable),
-      ),
+      );
+    },
     inject: [DataSource],
   },
   {
     provide: 'IPointEarningRuleRepository',
-    useFactory: (dataSource: DataSource): TypeOrmPointEarningRuleRepository =>
-      new TypeOrmPointEarningRuleRepository(
+    useFactory: (dataSource: DataSource): TypeOrmPointEarningRuleRepository => {
+      return new TypeOrmPointEarningRuleRepository(
         dataSource.getRepository<PointEarningRuleTable>(PointEarningRuleTable),
-      ),
+      );
+    },
     inject: [DataSource],
   },
   {
     provide: 'IPointTransactionRepository',
-    useFactory: (dataSource: DataSource): TypeOrmPointTransactionRepository =>
-      new TypeOrmPointTransactionRepository(
+    useFactory: (dataSource: DataSource): TypeOrmPointTransactionRepository => {
+      return new TypeOrmPointTransactionRepository(
         dataSource.getRepository<PointTransactionTable>(PointTransactionTable),
-      ),
+      );
+    },
     inject: [DataSource],
   },
 ];

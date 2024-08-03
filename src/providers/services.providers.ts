@@ -4,19 +4,32 @@ import { CustomerService } from '../services/customer.service';
 import { ProductService } from '../services/product.service';
 
 /**
- * Array of service providers for dependency injection.
- * Each service is provided with its respective class.
+ * Defines an array of service providers for dependency injection within the application.
+ * Each entry in the array specifies a service class to be instantiated when requested.
+ * @type {Provider[]} - Array of providers configured for dependency injection.
  */
 export const serviceProviders: Provider[] = [
   {
+    /**
+     * Provider configuration for the LoyaltyService.
+     * @type {Provider}
+     */
     provide: LoyaltyService,
     useClass: LoyaltyService,
   },
   {
+    /**
+     * Provider configuration for the CustomerService.
+     * @type {Provider}
+     */
     provide: CustomerService,
     useClass: CustomerService,
   },
   {
+    /**
+     * Provider configuration for the ProductService.
+     * @type {Provider}
+     */
     provide: ProductService,
     useClass: ProductService,
   },

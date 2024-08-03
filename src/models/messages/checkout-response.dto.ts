@@ -2,65 +2,68 @@ import { IsNumber, IsArray } from 'class-validator';
 import { Exclude, Expose } from 'class-transformer';
 
 /**
- * Data transfer object for the response of a checkout operation.
- * @Exclude() Decorator to exclude all properties from the class that are not explicitly exposed.
+ * Represents the data transfer object for the response of a checkout operation.
+ * This class is used to encapsulate the results of a checkout process, including points earned and any product validation issues.
+ *
+ * @Exclude() Excludes all properties from the class that are not explicitly exposed using @Expose().
  */
 @Exclude()
 export class CheckoutResponseDto {
   /**
-   * The total points earned during the checkout process.
+   * Represents the total points earned during the checkout process.
+   *
    * @type {number}
-   * @Expose() Decorator to expose this property for transformation.
-   * @IsNumber() Validates that the value is a number.
+   * @Expose() Makes this property visible during class transformation.
+   * @IsNumber() Ensures the property value is a number.
    */
   @Expose()
-  @IsNumber()
+  @IsNumber({}, { message: 'Total points earned must be a number.' })
   readonly total_points_earned: number;
 
   /**
-   * Array of product IDs that were found to be invalid during the checkout.
+   * Contains an array of product IDs that were identified as invalid during the checkout process.
+   *
    * @type {number[]}
-   * @Expose() Decorator to expose this property for transformation.
-   * @IsArray() Validates that the value is an array.
-   * @IsNumber({}, { each: true }) Validates that each element in the array is a number.
+   * @Expose() Makes this property visible during class transformation.
+   * @IsArray() Ensures the property value is an array.
+   * @IsNumber({}, { each: true }) Ensures each element in the array is a number.
    */
   @Expose()
-  @IsArray()
-  @IsNumber({}, { each: true })
+  @IsArray({ message: 'Invalid products must be an array.' })
+  @IsNumber({}, { each: true, message: 'Each product ID must be a number.' })
   readonly invalid_products: number[];
 
   /**
-   * Array of product IDs missing a category assignment.
+   * Contains an array of product IDs that are missing a category assignment.
+   *
    * @type {number[]}
-   * @Expose() Decorator to expose this property for transformation.
-   * @IsArray() Validates that the value is an array.
-   * @IsNumber({}, { each: true }) Validates that each element in the array is a number.
+   * @Expose() Makes this property visible during class transformation.
+   * @IsArray() Ensures the property value is an array.
+   * @IsNumber({}, { each: true }) Ensures each element in the array is a number.
    */
   @Expose()
-  @IsArray()
-  @IsNumber({}, { each: true })
+  @IsArray({ message: 'Products missing category must be an array.' })
+  @IsNumber({}, { each: true, message: 'Each product ID must be a number.' })
   readonly products_missing_category: number[];
 
   /**
-   * Array of product IDs for which point earning rules are missing.
+   * Contains an array of product IDs for which point earning rules are missing.
+   *
    * @type {number[]}
-   * @Expose() Decorator to expose this property for transformation.
-   * @IsArray() Validates that the value is an array.
-   * @IsNumber({}, { each: true }) Validates that each element in the array is a number.
+   * @Expose() Makes this property visible during class transformation.
+   * @IsArray() Ensures the property value is an array.
+   * @IsNumber({}, { each: true }) Ensures each element in the array is a number.
    */
   @Expose()
-  @IsArray()
-  @IsNumber({}, { each: true })
+  @IsArray({ message: 'Point earning rules missing must be an array.' })
+  @IsNumber({}, { each: true, message: 'Each product ID must be a number.' })
   readonly point_earning_rules_missing: number[];
 
   /**
    * Constructor to allow partial initialization of the CheckoutResponseDto class.
-   * @param partial Partial object of CheckoutResponseDto to allow partial updates.
+   * This is useful for creating instances of CheckoutResponseDto with partial data, particularly useful in update scenarios.
    *
-   * Use Case:
-   * This constructor is useful when you have partial data and need to create a
-   * structured CheckoutResponseDto object. For instance, when updating you
-   * can create a new ProductDto with only the changed fields.
+   * @param partial A partial object of CheckoutResponseDto to allow partial updates.
    */
   constructor(partial: Partial<CheckoutResponseDto>) {
     Object.assign(this, partial);
