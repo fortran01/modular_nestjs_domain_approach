@@ -15,9 +15,11 @@ export class ProductMapper {
     product.category = productTable.category
       ? CategoryMapper.toDomain(productTable.category)
       : null;
-    product.transactions = productTable.transactions.map((transaction) =>
-      PointTransactionMapper.toDomain(transaction),
-    );
+    product.transactions = productTable.transactions
+      ? productTable.transactions.map((transaction) =>
+          PointTransactionMapper.toDomain(transaction),
+        )
+      : [];
     return product;
   }
 

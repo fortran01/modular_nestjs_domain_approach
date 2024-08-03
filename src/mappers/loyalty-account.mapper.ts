@@ -11,9 +11,11 @@ export class LoyaltyAccountMapper {
     loyaltyAccount.customer = loyaltyAccountTable.customer
       ? CustomerMapper.toDomain(loyaltyAccountTable.customer)
       : null;
-    loyaltyAccount.transactions = loyaltyAccountTable.transactions.map(
-      (transaction) => PointTransactionMapper.toDomain(transaction),
-    );
+    loyaltyAccount.transactions = loyaltyAccountTable.transactions
+      ? loyaltyAccountTable.transactions.map((transaction) =>
+          PointTransactionMapper.toDomain(transaction),
+        )
+      : [];
     loyaltyAccount.lastUpdated = loyaltyAccountTable.lastUpdated;
     return loyaltyAccount;
   }
