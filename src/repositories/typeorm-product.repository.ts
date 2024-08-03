@@ -28,6 +28,7 @@ export class TypeOrmProductRepository implements IProductRepository {
   async findById(id: number): Promise<Product | undefined> {
     const productTable = await this.productRepository.findOne({
       where: { id },
+      relations: ['category'], // This line ensures the category relation is loaded
     });
     return productTable ? ProductMapper.toDomain(productTable) : undefined;
   }
