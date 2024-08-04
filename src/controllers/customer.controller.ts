@@ -8,6 +8,7 @@ import {
   Body,
   Put,
   Delete,
+  HttpCode,
 } from '@nestjs/common';
 import { CustomerService } from '../services/customer.service';
 import {
@@ -73,11 +74,12 @@ export class CustomerController {
   /**
    * Deletes a customer by ID.
    * @param id The ID of the customer to delete.
-   * @returns A promise that resolves when the customer is deleted.
+   * @returns A promise that resolves with no content when the customer is deleted.
    */
+  @HttpCode(204)
   @Delete(':id')
   async deleteCustomer(@Param('id') id: string): Promise<void> {
-    return this.customerService.delete(parseInt(id));
+    await this.customerService.delete(parseInt(id));
   }
 
   @Get()
