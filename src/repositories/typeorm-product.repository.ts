@@ -85,7 +85,9 @@ export class TypeOrmProductRepository implements IProductRepository {
     // Map fields from Product to productTable
     productTable.name = product.name;
     productTable.price = product.price;
-    // Assume Product includes categoryId and handle category update
+    productTable.image_url = product.image_url;
+
+    // Update category if provided
     if (product.category) {
       const category = await this.categoryRepository.findOne({
         where: { id: product.category.id },
