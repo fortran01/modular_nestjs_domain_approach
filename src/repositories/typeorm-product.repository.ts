@@ -5,6 +5,7 @@ import { Product } from '../models/domain/product.entity';
 import { ProductTable } from '../models/database/product.table';
 import { ProductMapper } from '../mappers/product.mapper';
 import { IProductRepository } from './product.repository.interface';
+import { CategoryTable } from '../models/database/category.table';
 
 /**
  * Injectable class to handle operations for Product entities using TypeORM.
@@ -18,6 +19,8 @@ export class TypeOrmProductRepository implements IProductRepository {
   constructor(
     @InjectRepository(ProductTable)
     private productRepository: Repository<ProductTable>,
+    @InjectRepository(CategoryTable)
+    private categoryRepository: Repository<CategoryTable>,
   ) {}
 
   /**
@@ -28,7 +31,7 @@ export class TypeOrmProductRepository implements IProductRepository {
   async findById(id: number): Promise<Product | undefined> {
     const productTable = await this.productRepository.findOne({
       where: { id },
-      relations: ['category'], // This line ensures the category relation is loaded
+      relations: ['category', 'transactions'], // Ensure related entities are loaded
     });
     return productTable ? ProductMapper.toDomain(productTable) : undefined;
   }
@@ -71,9 +74,30 @@ export class TypeOrmProductRepository implements IProductRepository {
    * @returns A promise that resolves to the updated Product.
    */
   async update(product: Product): Promise<Product> {
-    const productTable = ProductMapper.toPersistence(product);
-    await this.productRepository.update(productTable.id, productTable);
-    return ProductMapper.toDomain(productTable);
+    const productTable = await this.productRepository.findOne({
+      where: { id: product.id },
+      relations: ['category', 'transactions'],
+    });
+    if (!productTable) {
+      throw new Error('Product not found');
+    }
+
+    // Map fields from Product to productTable
+    productTable.name = product.name;
+    productTable.price = product.price;
+    // Assume Product includes categoryId and handle category update
+    if (product.category) {
+      const category = await this.categoryRepository.findOne({
+        where: { id: product.category.id },
+      });
+      if (!category) {
+        throw new Error('Category not found');
+      }
+      productTable.category = category;
+    }
+
+    const updatedProductTable = await this.productRepository.save(productTable);
+    return ProductMapper.toDomain(updatedProductTable);
   }
 
   /**

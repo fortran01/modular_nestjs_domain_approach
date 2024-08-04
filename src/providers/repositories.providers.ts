@@ -41,6 +41,7 @@ export const repositoryProviders: Provider[] = [
     useFactory: (dataSource: DataSource): TypeOrmProductRepository => {
       return new TypeOrmProductRepository(
         dataSource.getRepository<ProductTable>(ProductTable),
+        dataSource.getRepository<CategoryTable>(CategoryTable),
       );
     },
     inject: [DataSource],
