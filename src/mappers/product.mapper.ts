@@ -1,6 +1,10 @@
 import { Product } from '../models/domain/product.entity';
 import { ProductTable } from '../models/database/product.table';
-import { ProductDto } from '../models/messages/product.dto';
+import {
+  CreateProductDto,
+  UpdateProductDto,
+  ProductResponseDto,
+} from '../models/messages/product.dto';
 import { CategoryMapper } from './category.mapper';
 import { PointTransactionMapper } from './point-transaction.mapper';
 import { ICategoryRepository } from '../repositories/category.repository.interface';
@@ -32,35 +36,48 @@ export class ProductMapper {
   }
 
   /**
-   * Creates or updates a Product domain model from a ProductDto.
+   * Creates or updates a Product domain model from a CreateProductDto.
+   * @param productDto - The DTO containing product data.
+   * @param categoryRepository - Repository to fetch category data.
+   * @returns A promise containing the Product domain model.
+   */
+  static async fromCreateDto(
+    productDto: CreateProductDto,
+    categoryRepository: ICategoryRepository,
+  ): Promise<Product> {
+    const product = new Product();
+    product.name = productDto.name;
+    product.price = productDto.price;
+    product.image_url = productDto.image_url;
+    if (productDto.categoryId) {
+      const category = await categoryRepository.findById(productDto.categoryId);
+      product.category = category ? CategoryMapper.toDomain(category) : null;
+    }
+    return product;
+  }
+
+  /**
+   * Creates or updates a Product domain model from an UpdateProductDto.
    * @param productDto - The DTO containing product data.
    * @param categoryRepository - Repository to fetch category data.
    * @param existingProduct - Optional existing product for updates.
    * @returns A promise containing the Product domain model.
    */
-  static async fromDto(
-    productDto: ProductDto,
+  static async fromUpdateDto(
+    productDto: UpdateProductDto,
     categoryRepository: ICategoryRepository,
-    existingProduct?: Product,
+    existingProduct: Product,
   ): Promise<Product> {
-    const product: Product = existingProduct || new Product();
-    product.id = productDto.id;
-    product.name = productDto.name;
-    product.price = productDto.price;
-    product.image_url = productDto.image_url;
-
+    if (productDto.name) existingProduct.name = productDto.name;
+    if (productDto.price) existingProduct.price = productDto.price;
+    if (productDto.image_url) existingProduct.image_url = productDto.image_url;
     if (productDto.categoryId) {
-      const categoryTable = await categoryRepository.findById(
-        productDto.categoryId,
-      );
-      product.category = categoryTable
-        ? CategoryMapper.toDomain(categoryTable)
+      const category = await categoryRepository.findById(productDto.categoryId);
+      existingProduct.category = category
+        ? CategoryMapper.toDomain(category)
         : null;
-    } else {
-      product.category = null;
     }
-
-    return product;
+    return existingProduct;
   }
 
   /**
@@ -86,12 +103,12 @@ export class ProductMapper {
   }
 
   /**
-   * Converts a Product domain model to a ProductDto.
+   * Converts a Product domain model to a ProductResponseDto.
    * @param product - The Product domain model.
-   * @returns The ProductDto.
+   * @returns The ProductResponseDto.
    */
-  static toDto(product: Product): ProductDto {
-    return new ProductDto({
+  static toDto(product: Product): ProductResponseDto {
+    return new ProductResponseDto({
       id: product.id,
       name: product.name,
       price: product.price,
