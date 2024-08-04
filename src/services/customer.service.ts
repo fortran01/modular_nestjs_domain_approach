@@ -4,7 +4,11 @@ import { ICustomerRepository } from '../repositories/customer.repository.interfa
 import { ILoyaltyAccountRepository } from '../repositories/loyalty-account.repository.interface';
 import { Customer } from '../models/domain/customer.entity';
 import { LoyaltyAccount } from '../models/domain/loyalty-account.entity';
-import { CustomerDto } from '../models/messages/customer.dto';
+import {
+  CreateCustomerDto,
+  UpdateCustomerDto,
+  CustomerResponseDto,
+} from '../models/messages/customer.dto';
 import { CustomerMapper } from '../mappers/customer.mapper';
 
 /**
@@ -27,9 +31,9 @@ export class CustomerService implements ICustomerService {
   /**
    * Finds a customer by their unique identifier.
    * @param id The unique identifier of the customer.
-   * @returns A promise that resolves to the CustomerDto or undefined if not found.
+   * @returns A promise that resolves to the CustomerResponseDto or undefined if not found.
    */
-  async findById(id: number): Promise<CustomerDto | undefined> {
+  async findById(id: number): Promise<CustomerResponseDto | undefined> {
     const customer = await this.customerRepository.findById(id);
     return customer ? CustomerMapper.toDto(customer) : undefined;
   }
@@ -37,9 +41,9 @@ export class CustomerService implements ICustomerService {
   /**
    * Creates a new customer and initializes a loyalty account for them.
    * @param customerDto The DTO for creating a new customer.
-   * @returns A promise that resolves to the newly created CustomerDto.
+   * @returns A promise that resolves to the newly created CustomerResponseDto.
    */
-  async create(customerDto: CustomerDto): Promise<CustomerDto> {
+  async create(customerDto: CreateCustomerDto): Promise<CustomerResponseDto> {
     const customer = new Customer();
     customer.name = customerDto.name;
     customer.email = customerDto.email;
@@ -57,10 +61,13 @@ export class CustomerService implements ICustomerService {
    * Updates an existing customer with new data.
    * @param id The unique identifier of the customer to update.
    * @param customerDto The DTO with new data for the customer.
-   * @returns A promise that resolves to the updated CustomerDto.
+   * @returns A promise that resolves to the updated CustomerResponseDto.
    * @throws Error if the customer is not found.
    */
-  async update(id: number, customerDto: CustomerDto): Promise<CustomerDto> {
+  async update(
+    id: number,
+    customerDto: UpdateCustomerDto,
+  ): Promise<CustomerResponseDto> {
     const customer = await this.customerRepository.findById(id);
     if (!customer) {
       throw new Error('Customer not found');

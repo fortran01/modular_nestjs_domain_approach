@@ -6,6 +6,7 @@ import { IPointEarningRuleRepository } from '../repositories/point-earning-rule.
 import { IPointTransactionRepository } from '../repositories/point-transaction.repository.interface';
 import { PointCalculationService } from '../models/domain/point-calculation.service';
 import { CheckoutResponseDto } from '../models/messages/checkout-response.dto';
+import { PointsDto } from '../models/messages/points.dto';
 import { PointTransaction } from '../models/domain/point-transaction.entity';
 
 /**
@@ -43,12 +44,14 @@ export class LoyaltyService {
       throw new Error('Loyalty account not found');
     }
 
-    const result: {
+    interface CheckoutResult {
       total_points_earned: number;
       invalid_products: number[];
       products_missing_category: number[];
       point_earning_rules_missing: number[];
-    } = {
+    }
+
+    const result: CheckoutResult = {
       total_points_earned: 0,
       invalid_products: [],
       products_missing_category: [],
@@ -106,12 +109,17 @@ export class LoyaltyService {
     return new CheckoutResponseDto(result);
   }
 
-  async getCustomerPoints(customerId: number): Promise<number> {
+  /**
+   * Retrieves the total points for a customer's loyalty account.
+   * @param customerId The ID of the customer whose points are being retrieved.
+   * @returns A PointsDto containing the total points in the customer's loyalty account.
+   */
+  async getCustomerPoints(customerId: number): Promise<PointsDto> {
     const loyaltyAccountDomain =
       await this.loyaltyAccountRepository.findByCustomerId(customerId);
     if (!loyaltyAccountDomain) {
       throw new Error('Loyalty account not found');
     }
-    return loyaltyAccountDomain.getPoints();
+    return new PointsDto({ points: loyaltyAccountDomain.getPoints() });
   }
 }

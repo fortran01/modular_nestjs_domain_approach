@@ -12,4 +12,13 @@ export class PointsDto {
    */
   @IsNumber({}, { message: 'Points must be a valid number.' })
   points: number;
+
+  /**
+   * Constructor to allow partial initialization of the PointsDto class.
+   * This is useful for creating instances of PointsDto with partial data, particularly useful in update scenarios.
+   * @param partial A partial object of PointsDto to allow partial updates.
+   */
+  constructor(partial: Partial<PointsDto>) {
+    Object.assign(this, partial);
+  }
 }

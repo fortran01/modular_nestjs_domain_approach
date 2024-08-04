@@ -1,6 +1,6 @@
 import { Customer } from '../models/domain/customer.entity';
 import { CustomerTable } from '../models/database/customer.table';
-import { CustomerDto } from '../models/messages/customer.dto';
+import { CustomerResponseDto } from '../models/messages/customer.dto';
 import { LoyaltyAccountMapper } from './loyalty-account.mapper';
 
 /**
@@ -40,12 +40,12 @@ export class CustomerMapper {
   }
 
   /**
-   * Converts a Customer domain model to a CustomerDto.
+   * Converts a Customer domain model to a CustomerResponseDto.
    * @param customer - The Customer domain model.
-   * @returns The CustomerDto.
+   * @returns The CustomerResponseDto.
    */
-  static toDto(customer: Customer): CustomerDto {
-    return new CustomerDto({
+  static toDto(customer: Customer): CustomerResponseDto {
+    return new CustomerResponseDto({
       id: customer.id,
       name: customer.name,
       email: customer.email,

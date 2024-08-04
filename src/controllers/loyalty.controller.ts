@@ -102,7 +102,6 @@ export class LoyaltyController {
   @UseGuards(AuthGuard)
   async getPoints(@Req() req: Request): Promise<PointsDto> {
     const customerId = parseInt(req.cookies['customer_id']);
-    const points = await this.loyaltyService.getCustomerPoints(customerId);
-    return { points };
+    return await this.loyaltyService.getCustomerPoints(customerId);
   }
 }
