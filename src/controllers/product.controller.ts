@@ -7,6 +7,7 @@ import {
   Param,
   Body,
   NotFoundException,
+  HttpCode,
 } from '@nestjs/common';
 import { ProductService } from '../services/product.service';
 import {
@@ -85,6 +86,7 @@ export class ProductController {
    * @param id The unique identifier of the product to delete.
    * @returns A promise that resolves to void.
    */
+  @HttpCode(204)
   @Delete(':id')
   async deleteProduct(@Param('id') id: number): Promise<void> {
     await this.productService.delete(id);
