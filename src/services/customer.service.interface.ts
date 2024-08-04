@@ -39,4 +39,10 @@ export interface ICustomerService {
    * @returns A promise that resolves to void.
    */
   delete(id: number): Promise<void>;
+
+  /**
+   * Retrieves all customers.
+   * @returns A promise that resolves to an array of CustomerResponseDto.
+   */
+  findAll(): Promise<CustomerResponseDto[]>;
 }

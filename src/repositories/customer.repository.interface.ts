@@ -38,4 +38,10 @@ export interface ICustomerRepository {
    * @returns A promise that resolves to void.
    */
   delete(id: number): Promise<void>;
+
+  /**
+   * Finds all customers in the repository.
+   * @returns A promise that resolves to an array of Customers.
+   */
+  findAll(): Promise<Customer[]>;
 }

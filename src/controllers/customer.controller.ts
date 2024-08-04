@@ -79,4 +79,9 @@ export class CustomerController {
   async deleteCustomer(@Param('id') id: string): Promise<void> {
     return this.customerService.delete(parseInt(id));
   }
+
+  @Get()
+  async getAllCustomers(): Promise<CustomerResponseDto[]> {
+    return this.customerService.findAll();
+  }
 }

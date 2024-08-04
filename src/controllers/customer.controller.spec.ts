@@ -13,6 +13,7 @@ describe('CustomerController', () => {
       create: jest.fn(),
       update: jest.fn(),
       delete: jest.fn(),
+      findAll: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -25,6 +26,20 @@ describe('CustomerController', () => {
 
   it('should be defined', () => {
     expect(controller).toBeDefined();
+  });
+
+  describe('getAllCustomers', () => {
+    it('should return all customers', async () => {
+      const mockCustomers = [
+        { id: 1, name: 'John Doe' },
+        { id: 2, name: 'Jane Doe' },
+      ];
+      mockCustomerService.findAll.mockResolvedValue(mockCustomers);
+
+      const result = await controller.getAllCustomers();
+      expect(result).toEqual(mockCustomers);
+      expect(mockCustomerService.findAll).toHaveBeenCalled();
+    });
   });
 
   describe('getCustomer', () => {

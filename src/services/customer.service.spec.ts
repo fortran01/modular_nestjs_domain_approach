@@ -17,6 +17,7 @@ describe('CustomerService', () => {
     create: jest.Mock;
     update: jest.Mock;
     delete: jest.Mock;
+    findAll: jest.Mock;
   };
   let mockLoyaltyAccountRepository: {
     create: jest.Mock;
@@ -31,6 +32,7 @@ describe('CustomerService', () => {
       create: jest.fn(),
       update: jest.fn(),
       delete: jest.fn(),
+      findAll: jest.fn(),
     };
 
     mockLoyaltyAccountRepository = {
@@ -162,6 +164,29 @@ describe('CustomerService', () => {
 
       await expect(service.delete(1)).resolves.toBeUndefined();
       expect(mockCustomerRepository.delete).toHaveBeenCalledWith(1);
+    });
+  });
+
+  describe('findAll', () => {
+    it('should return all customers', async () => {
+      const mockCustomers = [
+        new CustomerResponseDto({
+          id: 1,
+          name: 'John Doe',
+          email: 'john@example.com',
+        }),
+        new CustomerResponseDto({
+          id: 2,
+          name: 'Jane Doe',
+          email: 'jane@example.com',
+        }),
+      ];
+      mockCustomerRepository.findAll.mockResolvedValue(mockCustomers);
+
+      const result = await service.findAll();
+
+      expect(result).toEqual(mockCustomers);
+      expect(mockCustomerRepository.findAll).toHaveBeenCalled();
     });
   });
 });

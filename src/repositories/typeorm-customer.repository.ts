@@ -75,4 +75,15 @@ export class TypeOrmCustomerRepository implements ICustomerRepository {
   async delete(id: number): Promise<void> {
     await this.customerRepository.delete(id);
   }
+
+  /**
+   * Finds all customers in the repository.
+   * @returns A promise that resolves to an array of Customers.
+   */
+  async findAll(): Promise<Customer[]> {
+    const customerTables = await this.customerRepository.find();
+    return customerTables.map((customerTable) =>
+      CustomerMapper.toDomain(customerTable),
+    );
+  }
 }

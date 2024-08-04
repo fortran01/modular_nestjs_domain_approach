@@ -85,4 +85,13 @@ export class CustomerService implements ICustomerService {
   async delete(id: number): Promise<void> {
     await this.customerRepository.delete(id);
   }
+
+  /**
+   * Finds all customers.
+   * @returns A promise that resolves to an array of CustomerResponseDto.
+   */
+  async findAll(): Promise<CustomerResponseDto[]> {
+    const customers = await this.customerRepository.findAll();
+    return customers.map((customer) => CustomerMapper.toDto(customer));
+  }
 }
