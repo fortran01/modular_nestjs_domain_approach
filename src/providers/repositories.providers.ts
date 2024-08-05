@@ -12,7 +12,7 @@ import { ProductTable } from '../models/database/product.table';
 import { CategoryTable } from '../models/database/category.table';
 import { PointEarningRuleTable } from '../models/database/point-earning-rule.table';
 import { PointTransactionTable } from '../models/database/point-transaction.table';
-
+import { PointCalculationService } from '../models/domain/point-calculation.service';
 /**
  * Provides dependency injection configurations for repository providers.
  * Each provider is configured with a factory function that initializes the repository with a TypeORM data source.
@@ -29,12 +29,18 @@ export const repositoryProviders: Provider[] = [
   },
   {
     provide: 'ILoyaltyAccountRepository',
-    useFactory: (dataSource: DataSource): TypeOrmLoyaltyAccountRepository => {
+    useFactory: (
+      dataSource: DataSource,
+      pointEarningRuleRepository: TypeOrmPointEarningRuleRepository,
+    ): TypeOrmLoyaltyAccountRepository => {
       return new TypeOrmLoyaltyAccountRepository(
         dataSource.getRepository<LoyaltyAccountTable>(LoyaltyAccountTable),
+        dataSource.manager,
+        new PointCalculationService(),
+        pointEarningRuleRepository,
       );
     },
-    inject: [DataSource],
+    inject: [DataSource, 'IPointEarningRuleRepository'],
   },
   {
     provide: 'IProductRepository',

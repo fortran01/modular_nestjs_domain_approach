@@ -37,6 +37,23 @@ export interface ILoyaltyAccountRepository {
    * @param id The unique identifier of the LoyaltyAccount to which points will be added.
    * @param points The number of points to add.
    * @returns A promise that resolves to the updated LoyaltyAccount with added points.
+   * @throws Error if the LoyaltyAccount is not found.
    */
   addPoints(id: number, points: number): Promise<LoyaltyAccount>;
+
+  /**
+   * Processes a checkout transaction, ensuring all operations are atomic.
+   * @param customerId The customer's ID.
+   * @param productIds Array of product IDs being purchased.
+   * @returns A promise that resolves to an object containing details of the transaction.
+   */
+  checkoutTransaction(
+    customerId: number,
+    productIds: number[],
+  ): Promise<{
+    totalPointsEarned: number;
+    invalidProducts: number[];
+    productsMissingCategory: number[];
+    pointEarningRulesMissing: number[];
+  }>;
 }

@@ -1,38 +1,21 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { LoyaltyService } from './loyalty.service';
-import { PointCalculationService } from '../models/domain/point-calculation.service';
 import { CheckoutResponseDto } from '../models/messages/checkout-response.dto';
 import { PointsDto } from '../models/messages/points.dto';
 
 describe('LoyaltyService', () => {
   let service: LoyaltyService;
   let mockLoyaltyAccountRepository;
-  let mockProductRepository;
-  let mockCategoryRepository;
-  let mockPointEarningRuleRepository;
-  let mockPointTransactionRepository;
-  let mockPointCalculationService;
 
   beforeEach(async () => {
     mockLoyaltyAccountRepository = {
       findByCustomerId: jest.fn(),
-      update: jest.fn(),
-    };
-    mockProductRepository = {
-      findById: jest.fn(),
-    };
-    mockCategoryRepository = {
-      findById: jest.fn(),
-    };
-    mockPointEarningRuleRepository = {
-      findByCategory: jest.fn(),
-    };
-    mockPointTransactionRepository = {
-      create: jest.fn(),
-    };
-    mockPointCalculationService = {
-      findActiveRule: jest.fn(),
-      calculatePoints: jest.fn(),
+      checkoutTransaction: jest.fn().mockResolvedValue({
+        totalPointsEarned: 100,
+        invalidProducts: [],
+        productsMissingCategory: [],
+        pointEarningRulesMissing: [],
+      }),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -41,20 +24,6 @@ describe('LoyaltyService', () => {
         {
           provide: 'ILoyaltyAccountRepository',
           useValue: mockLoyaltyAccountRepository,
-        },
-        { provide: 'IProductRepository', useValue: mockProductRepository },
-        { provide: 'ICategoryRepository', useValue: mockCategoryRepository },
-        {
-          provide: 'IPointEarningRuleRepository',
-          useValue: mockPointEarningRuleRepository,
-        },
-        {
-          provide: 'IPointTransactionRepository',
-          useValue: mockPointTransactionRepository,
-        },
-        {
-          provide: PointCalculationService,
-          useValue: mockPointCalculationService,
         },
       ],
     }).compile();
@@ -70,31 +39,17 @@ describe('LoyaltyService', () => {
     it('should process checkout correctly', async () => {
       const customerId = 1;
       const productIds = [101, 102];
-      mockLoyaltyAccountRepository.findByCustomerId.mockResolvedValue({
-        addPoints: jest.fn(),
-      });
-      mockProductRepository.findById.mockResolvedValue({
-        isEligibleForPoints: () => true,
-        category: { id: 10 },
-      });
-      mockCategoryRepository.findById.mockResolvedValue({});
-      mockPointEarningRuleRepository.findByCategory.mockResolvedValue([]);
-      mockPointCalculationService.findActiveRule.mockReturnValue({});
-      mockPointCalculationService.calculatePoints.mockReturnValue(50);
-      mockPointTransactionRepository.create.mockResolvedValue({});
 
       const result = await service.checkout(customerId, productIds);
 
       expect(result).toBeInstanceOf(CheckoutResponseDto);
+      expect(result.total_points_earned).toEqual(100);
+      expect(result.invalid_products).toEqual([]);
+      expect(result.products_missing_category).toEqual([]);
+      expect(result.point_earning_rules_missing).toEqual([]);
       expect(
-        mockLoyaltyAccountRepository.findByCustomerId,
-      ).toHaveBeenCalledWith(customerId);
-      expect(mockProductRepository.findById).toHaveBeenCalledTimes(
-        productIds.length,
-      );
-      expect(mockPointTransactionRepository.create).toHaveBeenCalledTimes(
-        productIds.length,
-      );
+        mockLoyaltyAccountRepository.checkoutTransaction,
+      ).toHaveBeenCalledWith(customerId, productIds);
     });
   });
 

@@ -1,11 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, EntityManager } from 'typeorm';
 import { LoyaltyAccount } from '../models/domain/loyalty-account.entity';
 import { LoyaltyAccountTable } from '../models/database/loyalty-account.table';
+import { ProductTable } from '../models/database/product.table';
+import { PointTransactionTable } from '../models/database/point-transaction.table';
 import { LoyaltyAccountMapper } from '../mappers/loyalty-account.mapper';
 import { ILoyaltyAccountRepository } from './loyalty-account.repository.interface';
-
+import { PointCalculationService } from '../models/domain/point-calculation.service';
+import { PointEarningRuleTable } from '../models/database/point-earning-rule.table';
+import { ProductMapper } from '../mappers/product.mapper';
+import { TypeOrmPointEarningRuleRepository } from './typeorm-point-earning-rule.repository';
 /**
  * Injectable class to handle operations for LoyaltyAccount entities using TypeORM.
  */
@@ -20,6 +25,10 @@ export class TypeOrmLoyaltyAccountRepository
   constructor(
     @InjectRepository(LoyaltyAccountTable)
     private loyaltyAccountRepository: Repository<LoyaltyAccountTable>,
+    private entityManager: EntityManager,
+    private pointCalculationService: PointCalculationService,
+    @InjectRepository(PointEarningRuleTable)
+    private pointEarningRuleRepository: TypeOrmPointEarningRuleRepository,
   ) {}
 
   /**
@@ -99,5 +108,105 @@ export class TypeOrmLoyaltyAccountRepository
     const updatedLoyaltyAccountTable =
       await this.loyaltyAccountRepository.save(loyaltyAccountTable);
     return LoyaltyAccountMapper.toDomain(updatedLoyaltyAccountTable);
+  }
+
+  /**
+   * Processes a checkout transaction, ensuring all operations are atomic.
+   * @param customerId The customer's ID.
+   * @param productIds Array of product IDs being purchased.
+   * @returns A promise that resolves to an object containing details of the transaction.
+   */
+  async checkoutTransaction(
+    customerId: number,
+    productIds: number[],
+  ): Promise<{
+    totalPointsEarned: number;
+    invalidProducts: number[];
+    productsMissingCategory: number[];
+    pointEarningRulesMissing: number[];
+  }> {
+    return this.entityManager.transaction(
+      async (transactionalEntityManager) => {
+        const loyaltyAccount = await transactionalEntityManager.findOne(
+          LoyaltyAccountTable,
+          {
+            where: { customer: { id: customerId } },
+            relations: ['customer'],
+          },
+        );
+        if (!loyaltyAccount) throw new Error('Loyalty account not found');
+
+        let totalPointsEarned = 0;
+        const invalidProducts: number[] = [];
+        const productsMissingCategory: number[] = [];
+        const pointEarningRulesMissing: number[] = [];
+
+        const date = new Date(); // Current date for rule validation
+
+        for (const productId of productIds) {
+          const productTable = await transactionalEntityManager.findOne(
+            ProductTable,
+            {
+              where: { id: productId },
+              relations: ['category'],
+            },
+          );
+          if (!productTable) {
+            invalidProducts.push(productId);
+            continue;
+          }
+
+          if (!productTable.category) {
+            productsMissingCategory.push(productId);
+            continue;
+          }
+
+          const product = ProductMapper.toDomain(productTable);
+
+          const rules = await this.pointEarningRuleRepository.findByCategory(
+            productTable.category.id,
+          );
+          const activeRule = this.pointCalculationService.findActiveRule(
+            rules,
+            date,
+          );
+
+          if (!activeRule) {
+            pointEarningRulesMissing.push(productId);
+            continue;
+          }
+
+          const pointsEarned = this.pointCalculationService.calculatePoints(
+            product,
+            activeRule,
+            date,
+          );
+          if (pointsEarned === 0) {
+            pointEarningRulesMissing.push(productId);
+            continue;
+          }
+
+          totalPointsEarned += pointsEarned;
+
+          const transaction = new PointTransactionTable();
+          transaction.loyaltyAccount = loyaltyAccount;
+          transaction.product = productTable; // Ensure this matches your entity relationships
+          transaction.pointsEarned = pointsEarned;
+          transaction.transactionDate = date;
+
+          await transactionalEntityManager.save(transaction);
+        }
+
+        loyaltyAccount.points += totalPointsEarned;
+        await transactionalEntityManager.save(loyaltyAccount);
+
+        return {
+          totalPointsEarned,
+          invalidProducts,
+          productsMissingCategory,
+          pointEarningRulesMissing,
+        };
+      },
+    );
   }
 }
