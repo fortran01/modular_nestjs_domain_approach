@@ -29,7 +29,7 @@ describe('LoyaltyController', () => {
 
     mockShoppingCartService = {
       addItem: jest.fn(),
-      getCart: jest.fn(),
+      getCart: jest.fn().mockResolvedValue({ items: [] }),
       updateItemQuantity: jest.fn(),
       removeItem: jest.fn(),
       clearCart: jest.fn(),
@@ -60,6 +60,7 @@ describe('LoyaltyController', () => {
         invalid_products: [],
         products_missing_category: [],
         point_earning_rules_missing: [],
+        success: true,
       };
 
       mockLoyaltyService.checkout.mockResolvedValue(mockCheckoutResult);
