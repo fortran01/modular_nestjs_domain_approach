@@ -35,7 +35,7 @@ export class TypeOrmShoppingCartRepository implements IShoppingCartRepository {
     const cartTable: ShoppingCartTable | undefined =
       await this.shoppingCartRepository.findOne({
         where: { customer: { id: customerId } },
-        relations: ['items', 'items.product'],
+        relations: ['items', 'items.product', 'customer'],
       });
     return cartTable ? ShoppingCartMapper.toDomain(cartTable) : undefined;
   }
@@ -86,7 +86,6 @@ export class TypeOrmShoppingCartRepository implements IShoppingCartRepository {
       await this.shoppingCartItemRepository.findOne({
         where: { cart: { id: cartId }, product: { id: productId } },
       });
-
     if (existingItem) {
       existingItem.quantity += quantity;
       await this.shoppingCartItemRepository.save(existingItem);

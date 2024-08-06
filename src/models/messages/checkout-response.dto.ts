@@ -1,4 +1,4 @@
-import { IsNumber, IsArray } from 'class-validator';
+import { IsNumber, IsArray, IsBoolean } from 'class-validator';
 import { Exclude, Expose } from 'class-transformer';
 
 /**
@@ -58,6 +58,17 @@ export class CheckoutResponseDto {
   @IsArray({ message: 'Point earning rules missing must be an array.' })
   @IsNumber({}, { each: true, message: 'Each product ID must be a number.' })
   readonly point_earning_rules_missing: number[];
+
+  /**
+   * Indicates whether the checkout operation was successful or not.
+   *
+   * @type {boolean}
+   * @Expose() Makes this property visible during class transformation.
+   * @IsBoolean() Ensures the property value is a boolean.
+   */
+  @Expose()
+  @IsBoolean({ message: 'Success must be a boolean value.' })
+  readonly success: boolean;
 
   /**
    * Constructor to allow partial initialization of the CheckoutResponseDto class.

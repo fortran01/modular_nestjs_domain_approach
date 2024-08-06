@@ -16,23 +16,23 @@ export class LoyaltyService {
   /**
    * Processes a checkout operation, calculating and recording points earned.
    * @param customerId The ID of the customer checking out.
-   * @param productIds An array of product IDs being purchased.
    * @returns A CheckoutResponseDto containing the results of the checkout process.
    */
-  async checkout(
-    customerId: number,
-    productIds: number[],
-  ): Promise<CheckoutResponseDto> {
-    const result = await this.loyaltyAccountRepository.checkoutTransaction(
-      customerId,
-      productIds,
-    );
+  async checkout(customerId: number): Promise<CheckoutResponseDto> {
+    const result =
+      await this.loyaltyAccountRepository.checkoutTransaction(customerId);
+
+    const isSuccess =
+      result.invalidProducts.length === 0 &&
+      result.productsMissingCategory.length === 0 &&
+      result.pointEarningRulesMissing.length === 0;
 
     return new CheckoutResponseDto({
       total_points_earned: result.totalPointsEarned,
       invalid_products: result.invalidProducts,
       products_missing_category: result.productsMissingCategory,
       point_earning_rules_missing: result.pointEarningRulesMissing,
+      success: isSuccess,
     });
   }
 

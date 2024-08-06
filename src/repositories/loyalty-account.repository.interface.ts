@@ -44,13 +44,9 @@ export interface ILoyaltyAccountRepository {
   /**
    * Processes a checkout transaction, ensuring all operations are atomic.
    * @param customerId The customer's ID.
-   * @param productIds Array of product IDs being purchased.
    * @returns A promise that resolves to an object containing details of the transaction.
    */
-  checkoutTransaction(
-    customerId: number,
-    productIds: number[],
-  ): Promise<{
+  checkoutTransaction(customerId: number): Promise<{
     totalPointsEarned: number;
     invalidProducts: number[];
     productsMissingCategory: number[];

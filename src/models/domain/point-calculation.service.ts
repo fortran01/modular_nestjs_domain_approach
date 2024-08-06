@@ -19,17 +19,19 @@ export class PointCalculationService {
    * @param product The product for which points are being calculated.
    * @param rule The point earning rule to apply.
    * @param date The date of the transaction to check rule applicability.
+   * @param quantity The quantity of the product being purchased.
    * @returns The number of points earned. Returns 0 if the product is not eligible or the rule is not active.
    */
   calculatePoints(
     product: Product,
     rule: PointEarningRule,
     date: Date,
+    quantity: number,
   ): number {
     if (!product.isEligibleForPoints() || !rule.isActive(date)) {
       return 0;
     }
-    return rule.calculatePoints(product.price);
+    return rule.calculatePoints(product.price) * quantity;
   }
 
   /**

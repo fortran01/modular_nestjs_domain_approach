@@ -4,11 +4,13 @@ import { ILoyaltyAccountRepository } from '../repositories/loyalty-account.repos
 import { IProductRepository } from '../repositories/product.repository.interface';
 import { ICategoryRepository } from '../repositories/category.repository.interface';
 import { IPointEarningRuleRepository } from '../repositories/point-earning-rule.repository.interface';
+import { IShoppingCartRepository } from '../repositories/shopping-cart.repository.interface';
 import { Customer } from '../models/domain/customer.entity';
 import { LoyaltyAccount } from '../models/domain/loyalty-account.entity';
 import { Product } from '../models/domain/product.entity';
 import { Category } from '../models/domain/category.entity';
 import { PointEarningRule } from '../models/domain/point-earning-rule.entity';
+import { ShoppingCart } from '../models/domain/shopping-cart.entity';
 
 /**
  * Injectable service for seeding the database with initial data.
@@ -26,6 +28,8 @@ export class DatabaseSeeder {
     private categoryRepository: ICategoryRepository,
     @Inject('IPointEarningRuleRepository')
     private pointEarningRuleRepository: IPointEarningRuleRepository,
+    @Inject('IShoppingCartRepository')
+    private shoppingCartRepository: IShoppingCartRepository,
   ) {}
 
   /**
@@ -36,6 +40,7 @@ export class DatabaseSeeder {
     await this.seedProducts();
     await this.seedCustomers();
     await this.seedPointEarningRules();
+    await this.seedShoppingCarts();
   }
 
   /**
@@ -161,5 +166,19 @@ export class DatabaseSeeder {
     }
 
     console.log('Point Earning Rules seeded');
+  }
+
+  /**
+   * Seeds shopping carts into the database.
+   */
+  private async seedShoppingCarts(): Promise<void> {
+    const customers = await this.customerRepository.findAll();
+    for (const customer of customers) {
+      const shoppingCart = new ShoppingCart();
+      shoppingCart.customer = customer;
+      await this.shoppingCartRepository.save(shoppingCart);
+    }
+
+    console.log('Shopping Carts seeded');
   }
 }

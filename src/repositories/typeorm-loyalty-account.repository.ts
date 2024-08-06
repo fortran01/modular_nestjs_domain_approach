@@ -3,7 +3,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, EntityManager } from 'typeorm';
 import { LoyaltyAccount } from '../models/domain/loyalty-account.entity';
 import { LoyaltyAccountTable } from '../models/database/loyalty-account.table';
-import { ProductTable } from '../models/database/product.table';
 import { PointTransactionTable } from '../models/database/point-transaction.table';
 import { LoyaltyAccountMapper } from '../mappers/loyalty-account.mapper';
 import { ILoyaltyAccountRepository } from './loyalty-account.repository.interface';
@@ -11,6 +10,8 @@ import { PointCalculationService } from '../models/domain/point-calculation.serv
 import { PointEarningRuleTable } from '../models/database/point-earning-rule.table';
 import { ProductMapper } from '../mappers/product.mapper';
 import { TypeOrmPointEarningRuleRepository } from './typeorm-point-earning-rule.repository';
+import { ShoppingCartTable } from '../models/database/shopping-cart.table';
+
 /**
  * Injectable class to handle operations for LoyaltyAccount entities using TypeORM.
  */
@@ -113,13 +114,9 @@ export class TypeOrmLoyaltyAccountRepository
   /**
    * Processes a checkout transaction, ensuring all operations are atomic.
    * @param customerId The customer's ID.
-   * @param productIds Array of product IDs being purchased.
    * @returns A promise that resolves to an object containing details of the transaction.
    */
-  async checkoutTransaction(
-    customerId: number,
-    productIds: number[],
-  ): Promise<{
+  async checkoutTransaction(customerId: number): Promise<{
     totalPointsEarned: number;
     invalidProducts: number[];
     productsMissingCategory: number[];
@@ -129,40 +126,40 @@ export class TypeOrmLoyaltyAccountRepository
       async (transactionalEntityManager) => {
         const loyaltyAccount = await transactionalEntityManager.findOne(
           LoyaltyAccountTable,
-          {
-            where: { customer: { id: customerId } },
-            relations: ['customer'],
-          },
+          { where: { customer: { id: customerId } }, relations: ['customer'] },
         );
         if (!loyaltyAccount) throw new Error('Loyalty account not found');
+
+        // Fetch the shopping cart for the customer
+        const cart = await transactionalEntityManager.findOne(
+          ShoppingCartTable,
+          {
+            where: { customer: { id: customerId } },
+            relations: ['items', 'items.product', 'items.product.category'],
+          },
+        );
+        if (!cart || !cart.items.length)
+          throw new Error('Shopping cart is empty or not found');
 
         let totalPointsEarned = 0;
         const invalidProducts: number[] = [];
         const productsMissingCategory: number[] = [];
         const pointEarningRulesMissing: number[] = [];
-
         const date = new Date(); // Current date for rule validation
 
-        for (const productId of productIds) {
-          const productTable = await transactionalEntityManager.findOne(
-            ProductTable,
-            {
-              where: { id: productId },
-              relations: ['category'],
-            },
-          );
+        for (const item of cart.items) {
+          const productTable = item.product;
           if (!productTable) {
-            invalidProducts.push(productId);
+            invalidProducts.push(item.product.id);
             continue;
           }
 
           if (!productTable.category) {
-            productsMissingCategory.push(productId);
+            productsMissingCategory.push(item.product.id);
             continue;
           }
 
           const product = ProductMapper.toDomain(productTable);
-
           const rules = await this.pointEarningRuleRepository.findByCategory(
             productTable.category.id,
           );
@@ -172,7 +169,7 @@ export class TypeOrmLoyaltyAccountRepository
           );
 
           if (!activeRule) {
-            pointEarningRulesMissing.push(productId);
+            pointEarningRulesMissing.push(item.product.id);
             continue;
           }
 
@@ -180,17 +177,17 @@ export class TypeOrmLoyaltyAccountRepository
             product,
             activeRule,
             date,
+            item.quantity,
           );
           if (pointsEarned === 0) {
-            pointEarningRulesMissing.push(productId);
+            pointEarningRulesMissing.push(item.product.id);
             continue;
           }
 
           totalPointsEarned += pointsEarned;
-
           const transaction = new PointTransactionTable();
           transaction.loyaltyAccount = loyaltyAccount;
-          transaction.product = productTable; // Ensure this matches your entity relationships
+          transaction.product = productTable;
           transaction.pointsEarned = pointsEarned;
           transaction.transactionDate = date;
 

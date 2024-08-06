@@ -45,7 +45,7 @@ export class ShoppingCartTable {
    * The timestamp when the cart was created.
    * @type {Date}
    */
-  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  @Column({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;
 
   /**
@@ -53,7 +53,7 @@ export class ShoppingCartTable {
    * @type {Date}
    */
   @Column({
-    type: 'timestamp',
+    type: 'datetime',
     default: () => 'CURRENT_TIMESTAMP',
     onUpdate: 'CURRENT_TIMESTAMP',
   })

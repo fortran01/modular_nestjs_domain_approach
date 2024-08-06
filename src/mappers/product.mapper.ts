@@ -51,7 +51,7 @@ export class ProductMapper {
     product.image_url = productDto.image_url;
     if (productDto.categoryId) {
       const category = await categoryRepository.findById(productDto.categoryId);
-      product.category = category ? CategoryMapper.toDomain(category) : null;
+      product.category = category ? category : null;
     }
     return product;
   }
@@ -73,9 +73,7 @@ export class ProductMapper {
     if (productDto.image_url) existingProduct.image_url = productDto.image_url;
     if (productDto.categoryId) {
       const category = await categoryRepository.findById(productDto.categoryId);
-      existingProduct.category = category
-        ? CategoryMapper.toDomain(category)
-        : null;
+      existingProduct.category = category ? category : null;
     }
     return existingProduct;
   }

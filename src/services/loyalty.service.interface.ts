@@ -5,13 +5,9 @@ import { CheckoutResponseDto } from '../models/messages/checkout-response.dto';
  */
 export interface ILoyaltyService {
   /**
-   * Processes a checkout operation for a customer with specified product IDs.
+   * Processes a checkout operation for a customer.
    * @param customerId The unique identifier of the customer.
-   * @param productIds An array of product IDs for checkout.
    * @returns A promise that resolves to a CheckoutResponseDto object.
    */
-  checkout(
-    customerId: number,
-    productIds: number[],
-  ): Promise<CheckoutResponseDto>;
+  checkout(customerId: number): Promise<CheckoutResponseDto>;
 }
