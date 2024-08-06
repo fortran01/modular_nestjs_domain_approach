@@ -2,19 +2,17 @@ import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { setupTestApp } from './setup';
 import { LoginDto } from '../src/models/messages/login.dto';
-import { CheckoutRequestDto } from '../src/models/messages/checkout-request.dto';
 import { DatabaseSeeder } from '../src/database/seeder';
+import { AddToCartDto } from '../src/models/messages/add-to-cart.dto';
 
 describe('LoyaltyController (e2e)', () => {
   let app: INestApplication;
   let customerId: number;
-  let productIds: number[];
 
   beforeAll(async () => {
     app = await setupTestApp();
     await app.get(DatabaseSeeder).seed();
-    customerId = 1; // Assuming a customer ID is available after seeding
-    productIds = [1, 2]; // Assuming product IDs are available after seeding
+    customerId = 1;
   });
 
   afterAll(async () => {
@@ -34,19 +32,49 @@ describe('LoyaltyController (e2e)', () => {
     expect(response.body).toHaveProperty('success', true);
   });
 
-  it('/checkout (POST) - Process checkout', async () => {
-    const checkoutDto: CheckoutRequestDto = {
-      product_ids: productIds,
+  it('/cart (GET) - Get cart before adding items', async () => {
+    const response = await request(app.getHttpServer())
+      .get('/cart')
+      .set('Cookie', `customer_id=${customerId}`)
+      .expect(200);
+
+    expect(response.body).toHaveProperty('items');
+    expect(response.body.items).toEqual([]);
+  });
+
+  it('/cart (POST) - Add item to cart', async () => {
+    const addToCartDto: AddToCartDto = {
+      productId: 2,
+      quantity: 2,
     };
 
     const response = await request(app.getHttpServer())
-      .post('/checkout')
+      .post('/cart')
       .set('Cookie', `customer_id=${customerId}`)
-      .send(checkoutDto)
+      .send(addToCartDto)
       .expect(201);
 
-    expect(response.body).toHaveProperty('total_points_earned');
-    expect(response.body.total_points_earned).toEqual(2415);
+    expect(response.body).toEqual({});
+  });
+
+  it('/checkout (POST) - Process checkout and verify cart is emptied', async () => {
+    // Process checkout
+    const checkoutResponse = await request(app.getHttpServer())
+      .post('/checkout')
+      .set('Cookie', `customer_id=${customerId}`)
+      .expect(201);
+
+    expect(checkoutResponse.body).toHaveProperty('total_points_earned');
+    expect(checkoutResponse.body.total_points_earned).toEqual(30);
+
+    // Verify cart is emptied
+    const cartResponse = await request(app.getHttpServer())
+      .get('/cart')
+      .set('Cookie', `customer_id=${customerId}`)
+      .expect(200);
+
+    expect(cartResponse.body).toHaveProperty('items');
+    expect(cartResponse.body.items).toEqual([]);
   });
 
   it('/points (GET) - Retrieve loyalty points', async () => {

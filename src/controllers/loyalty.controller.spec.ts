@@ -3,6 +3,7 @@ import { LoyaltyController } from './loyalty.controller';
 import { LoyaltyService } from '../services/loyalty.service';
 import { CustomerService } from '../services/customer.service';
 import { ProductService } from '../services/product.service';
+import { ShoppingCartService } from '../services/shopping-cart.service';
 import { Request, Response } from 'express';
 
 describe('LoyaltyController', () => {
@@ -10,6 +11,7 @@ describe('LoyaltyController', () => {
   let mockLoyaltyService;
   let mockCustomerService;
   let mockProductService;
+  let mockShoppingCartService;
 
   beforeEach(async () => {
     mockLoyaltyService = {
@@ -25,12 +27,21 @@ describe('LoyaltyController', () => {
       findAll: jest.fn(),
     };
 
+    mockShoppingCartService = {
+      addItem: jest.fn(),
+      getCart: jest.fn(),
+      updateItemQuantity: jest.fn(),
+      removeItem: jest.fn(),
+      clearCart: jest.fn(),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       controllers: [LoyaltyController],
       providers: [
         { provide: LoyaltyService, useValue: mockLoyaltyService },
         { provide: CustomerService, useValue: mockCustomerService },
         { provide: ProductService, useValue: mockProductService },
+        { provide: ShoppingCartService, useValue: mockShoppingCartService },
       ],
     }).compile();
 
@@ -44,7 +55,6 @@ describe('LoyaltyController', () => {
   describe('checkout', () => {
     it('should process a checkout successfully', async () => {
       const mockRequest = { cookies: { customer_id: '1' } };
-      const mockCheckoutDto = { product_ids: [1, 2, 3] };
       const mockCheckoutResult = {
         total_points_earned: 100,
         invalid_products: [],
@@ -54,13 +64,10 @@ describe('LoyaltyController', () => {
 
       mockLoyaltyService.checkout.mockResolvedValue(mockCheckoutResult);
 
-      const result = await controller.checkout(
-        mockCheckoutDto,
-        mockRequest as any as Request,
-      );
+      const result = await controller.checkout(mockRequest as any as Request);
 
       expect(result).toEqual(mockCheckoutResult);
-      expect(mockLoyaltyService.checkout).toHaveBeenCalledWith(1, [1, 2, 3]);
+      expect(mockLoyaltyService.checkout).toHaveBeenCalledWith(1);
     });
   });
 
@@ -123,6 +130,75 @@ describe('LoyaltyController', () => {
 
       expect(result).toEqual(mockPoints);
       expect(mockLoyaltyService.getCustomerPoints).toHaveBeenCalledWith(1);
+    });
+  });
+
+  describe('addToCart', () => {
+    it('should add item to cart successfully', async () => {
+      const mockRequest = { cookies: { customer_id: '1' } };
+      const mockAddToCartDto = { productId: 10, quantity: 2 };
+
+      await controller.addToCart(
+        mockAddToCartDto,
+        mockRequest as any as Request,
+      );
+
+      expect(mockShoppingCartService.addItem).toHaveBeenCalledWith(1, 10, 2);
+    });
+  });
+
+  describe('getCart', () => {
+    it('should retrieve the shopping cart successfully', async () => {
+      const mockRequest = { cookies: { customer_id: '1' } };
+      const mockCart = { items: [{ productId: 10, quantity: 2 }] };
+
+      mockShoppingCartService.getCart.mockResolvedValue(mockCart);
+
+      const result = await controller.getCart(mockRequest as any as Request);
+
+      expect(result).toEqual(mockCart);
+      expect(mockShoppingCartService.getCart).toHaveBeenCalledWith(1);
+    });
+  });
+
+  describe('updateCartItem', () => {
+    it('should update cart item quantity successfully', async () => {
+      const mockRequest = { cookies: { customer_id: '1' } };
+      const mockUpdateCartItemDto = { quantity: 3 };
+      const productId = 10;
+
+      await controller.updateCartItem(
+        productId,
+        mockUpdateCartItemDto,
+        mockRequest as any as Request,
+      );
+
+      expect(mockShoppingCartService.updateItemQuantity).toHaveBeenCalledWith(
+        1,
+        10,
+        3,
+      );
+    });
+  });
+
+  describe('removeFromCart', () => {
+    it('should remove item from cart successfully', async () => {
+      const mockRequest = { cookies: { customer_id: '1' } };
+      const productId = 10;
+
+      await controller.removeFromCart(productId, mockRequest as any as Request);
+
+      expect(mockShoppingCartService.removeItem).toHaveBeenCalledWith(1, 10);
+    });
+  });
+
+  describe('clearCart', () => {
+    it('should clear the shopping cart successfully', async () => {
+      const mockRequest = { cookies: { customer_id: '1' } };
+
+      await controller.clearCart(mockRequest as any as Request);
+
+      expect(mockShoppingCartService.clearCart).toHaveBeenCalledWith(1);
     });
   });
 });

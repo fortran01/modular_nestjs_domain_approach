@@ -38,9 +38,8 @@ describe('LoyaltyService', () => {
   describe('checkout', () => {
     it('should process checkout correctly', async () => {
       const customerId = 1;
-      const productIds = [101, 102];
 
-      const result = await service.checkout(customerId, productIds);
+      const result = await service.checkout(customerId);
 
       expect(result).toBeInstanceOf(CheckoutResponseDto);
       expect(result.total_points_earned).toEqual(100);
@@ -49,7 +48,7 @@ describe('LoyaltyService', () => {
       expect(result.point_earning_rules_missing).toEqual([]);
       expect(
         mockLoyaltyAccountRepository.checkoutTransaction,
-      ).toHaveBeenCalledWith(customerId, productIds);
+      ).toHaveBeenCalledWith(customerId);
     });
   });
 
