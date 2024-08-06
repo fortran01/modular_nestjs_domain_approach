@@ -1,4 +1,5 @@
 import { LoyaltyAccount } from './loyalty-account.entity';
+import { ShoppingCart } from './shopping-cart.entity';
 
 /**
  * Represents a customer in the system.
@@ -23,4 +24,9 @@ export class Customer {
    * The loyalty account associated with the customer.
    */
   loyaltyAccount: LoyaltyAccount;
+
+  /**
+   * The collection of shopping carts associated with the customer.
+   */
+  shoppingCarts: ShoppingCart[];
 }

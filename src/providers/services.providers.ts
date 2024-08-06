@@ -2,6 +2,7 @@ import { Provider } from '@nestjs/common';
 import { LoyaltyService } from '../services/loyalty.service';
 import { CustomerService } from '../services/customer.service';
 import { ProductService } from '../services/product.service';
+import { ShoppingCartService } from '../services/shopping-cart.service';
 
 /**
  * Defines an array of service providers for dependency injection within the application.
@@ -32,5 +33,13 @@ export const serviceProviders: Provider[] = [
      */
     provide: ProductService,
     useClass: ProductService,
+  },
+  {
+    /**
+     * Provider configuration for the ShoppingCartService.
+     * @type {Provider}
+     */
+    provide: ShoppingCartService,
+    useClass: ShoppingCartService,
   },
 ];

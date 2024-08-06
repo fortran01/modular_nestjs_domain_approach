@@ -5,7 +5,7 @@ import { ProductMapper } from '../mappers/product.mapper';
 import { LoyaltyAccountMapper } from '../mappers/loyalty-account.mapper';
 import { CustomerMapper } from '../mappers/customer.mapper';
 import { CategoryMapper } from '../mappers/category.mapper';
-
+import { ShoppingCartMapper } from '../mappers/shopping-cart.mapper';
 /**
  * Defines the providers for various data mappers in the application.
  * Each provider is associated with a specific mapper class.
@@ -59,5 +59,13 @@ export const mapperProviders: Provider[] = [
      */
     provide: 'CategoryMapper',
     useClass: CategoryMapper,
+  },
+  {
+    /**
+     * Provider configuration for the ShoppingCartMapper.
+     * @type {Provider}
+     */
+    provide: 'ShoppingCartMapper',
+    useClass: ShoppingCartMapper,
   },
 ];

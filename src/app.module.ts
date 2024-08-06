@@ -15,7 +15,8 @@ import { repositoryProviders } from './providers/repositories.providers';
 import { serviceProviders } from './providers/services.providers';
 import { PointCalculationService } from './models/domain/point-calculation.service';
 import { mapperProviders } from './providers/mappers.providers';
-
+import { ShoppingCartTable } from './models/database/shopping-cart.table';
+import { ShoppingCartItemTable } from './models/database/shopping-cart.table';
 /**
  * Main application module, configuring imports, controllers, providers, and seeding capabilities.
  */
@@ -31,6 +32,8 @@ import { mapperProviders } from './providers/mappers.providers';
         CategoryTable,
         PointEarningRuleTable,
         PointTransactionTable,
+        ShoppingCartTable,
+        ShoppingCartItemTable,
       ],
       synchronize: true,
     }),

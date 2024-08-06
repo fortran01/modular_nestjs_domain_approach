@@ -6,12 +6,17 @@ import { TypeOrmProductRepository } from '../repositories/typeorm-product.reposi
 import { TypeOrmCategoryRepository } from '../repositories/typeorm-category.repository';
 import { TypeOrmPointEarningRuleRepository } from '../repositories/typeorm-point-earning-rule.repository';
 import { TypeOrmPointTransactionRepository } from '../repositories/typeorm-point-transaction.repository';
+import { TypeOrmShoppingCartRepository } from '../repositories/typeorm-shopping-cart.repository';
 import { CustomerTable } from '../models/database/customer.table';
 import { LoyaltyAccountTable } from '../models/database/loyalty-account.table';
 import { ProductTable } from '../models/database/product.table';
 import { CategoryTable } from '../models/database/category.table';
 import { PointEarningRuleTable } from '../models/database/point-earning-rule.table';
 import { PointTransactionTable } from '../models/database/point-transaction.table';
+import {
+  ShoppingCartTable,
+  ShoppingCartItemTable,
+} from '../models/database/shopping-cart.table';
 import { PointCalculationService } from '../models/domain/point-calculation.service';
 /**
  * Provides dependency injection configurations for repository providers.
@@ -75,6 +80,16 @@ export const repositoryProviders: Provider[] = [
     useFactory: (dataSource: DataSource): TypeOrmPointTransactionRepository => {
       return new TypeOrmPointTransactionRepository(
         dataSource.getRepository<PointTransactionTable>(PointTransactionTable),
+      );
+    },
+    inject: [DataSource],
+  },
+  {
+    provide: 'IShoppingCartRepository',
+    useFactory: (dataSource: DataSource) => {
+      return new TypeOrmShoppingCartRepository(
+        dataSource.getRepository<ShoppingCartTable>(ShoppingCartTable),
+        dataSource.getRepository<ShoppingCartItemTable>(ShoppingCartItemTable),
       );
     },
     inject: [DataSource],

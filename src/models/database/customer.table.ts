@@ -4,8 +4,10 @@ import {
   Column,
   OneToOne,
   JoinColumn,
+  OneToMany,
 } from 'typeorm';
 import { LoyaltyAccountTable } from './loyalty-account.table';
+import { ShoppingCartTable } from './shopping-cart.table';
 
 /**
  * Represents the database schema for the Customer entity.
@@ -44,4 +46,11 @@ export class CustomerTable {
   )
   @JoinColumn()
   loyaltyAccount: LoyaltyAccountTable;
+
+  /**
+   * The shopping carts associated with the customer.
+   * @type {ShoppingCartTable[]}
+   */
+  @OneToMany(() => ShoppingCartTable, (cart) => cart.customer)
+  shoppingCarts: ShoppingCartTable[];
 }
